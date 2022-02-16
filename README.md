@@ -6,9 +6,17 @@
 ```
 git clone https://github.com/NCKU-CAID/rram_simulator.git
 ```
-### Source virtual environment
+
+### Use virtual enviroinment
+* install pacakge *virtualenv* fisrt
 ```python=
+python3 -m venv venv
 source venv/bin/activate
+```
+
+### Install requirement package
+```python=
+pip install -r requirement.txt
 ```
 
 ### Show helping list

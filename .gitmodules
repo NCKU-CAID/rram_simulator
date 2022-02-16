@@ -1,0 +1,6 @@
+[submodule "hotspot/Hotspot"]
+	path = hotspot/Hotspot
+	url = https://github.com/uvahotspot/HotSpot.git
+[submodule "hotspot/HotSpot"]
+	path = hotspot/HotSpot
+	url = https://github.com/uvahotspot/HotSpot.git

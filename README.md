@@ -3,8 +3,15 @@
 ## Experiment setup
 
 ### Download source code
+* Since `hotspot` is different project, use `recursive` to clone
+```
+git clone --recurse-submodules https://github.com/NCKU-CAID/rram_simulator.git
+```
+or 
 ```
 git clone https://github.com/NCKU-CAID/rram_simulator.git
+cd rram_simulator
+git submodule update
 ```
 
 ### Use virtual enviroinment

@@ -514,8 +514,8 @@ def main():
         
         for epoch in range(int(args.epochs)):
             prune_ratio_list = [0,0.4,0.2,0.4,0.3,0.3,0.9,0.]
-            #Train(trainloader, net, criterion, optimizer, epoch, qtz_opts, args.shifting, args.non_uniform, args.var, args) ## original prune
-            Train(trainloader, net, criterion, optimizer, epoch, qtz_opts, args.shifting, args.non_uniform, args.var, args, prune_ratio_list)
+            Train(trainloader, net, criterion, optimizer, epoch, qtz_opts, args.shifting, args.non_uniform, args.var, args) ## original prune
+            #Train(trainloader, net, criterion, optimizer, epoch, qtz_opts, args.shifting, args.non_uniform, args.var, args, prune_ratio_list)
             pred = Eval(testloader, net, criterion, optimizer, epoch, qtz_opts, args.shifting, args.non_uniform, args.rate, args.mode, args.var)
             
             

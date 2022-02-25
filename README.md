@@ -59,7 +59,7 @@ python main.py --resume saved_models/vgg11_ideal.pt --finetune 1 -q 1 -m linear 
 ```python=
 python main.py --resume saved_models/vgg11_8bit.pt --gpu 1 -e 1 --placement 1 --testbit 8 --arch vgg11 --experiment 1 --direct bl --remapping 1
 ```
-* `--gpu 1` : use seceond GPU(default is 0)
+* `--gpu 1` : use second GPU(default is 0)
 * `--tile_pairing` : compare with control group
 * `test_bits` : weight bits
 * `--experiment` : `1` for 1 cell represent 1 weight(default is `1`)

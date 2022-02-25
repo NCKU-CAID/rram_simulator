@@ -217,7 +217,7 @@ def ga_algorithm(net, args, testloader, criterion, optimizer, qtz_opts, shifting
     fitness_list = []
     prune_list = []
     acc_list = []
-    population, fitness_array = initial_population(size, net, args, testloader, criterion, optimizer, qtz_opts, shifting, non_uniform, rate, mode, var) 
+    population, fitness_array = initial_population(size, net, args, testloader, criterion, optimizer, qtz_opts, shifting, non_uniform, rate, mode, var)
     for i in range(max_gen):
         population, fitness_array, prune_ratio, acc = reproduction(population, fitness_array, crossoverRate, mutationRate, size, net, args, testloader, criterion, optimizer, qtz_opts, shifting, non_uniform, rate, mode, var)
         popu_list.append(population)
@@ -233,10 +233,10 @@ def ga_algorithm(net, args, testloader, criterion, optimizer, qtz_opts, shifting
         print('acc_list[{}]={}'.format(i, acc_list[i]))
 
 def initial_population(size, net, args, testloader, criterion, optimizer, qtz_opts, shifting, non_uniform, rate, mode, var):
-    
+
     population = []
     for i in range(size): ## create population
-        each_chromosome = [] 
+        each_chromosome = []
         for j in range(8):
             if j < 6 or i==7:
                 a = random.randint(0,5)
@@ -244,11 +244,11 @@ def initial_population(size, net, args, testloader, criterion, optimizer, qtz_op
                 a = random.randint(0,8)
             #print('a=',a)
             each_chromosome.append((a*10))
-    
+
         population.append(each_chromosome)
-    
+
     #print('population = ', population)
-   
+
     fitness_array=[]
     prune_ratio_array=[]
     acc_array = []
@@ -259,9 +259,9 @@ def initial_population(size, net, args, testloader, criterion, optimizer, qtz_op
             net.load_state_dict(checkpoint)
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
-            
-        fitness_score, t_prune_ratio, acc = calculate_fitness(population[i], size, net, args, testloader, criterion, optimizer, qtz_opts, shifting, non_uniform, rate, mode, var) 
-        
+
+        fitness_score, t_prune_ratio, acc = calculate_fitness(population[i], size, net, args, testloader, criterion, optimizer, qtz_opts, shifting, non_uniform, rate, mode, var)
+
         fitness_array.append(fitness_score) ### dict structure = {which population, fitness_score of which population}
         prune_ratio_array.append(t_prune_ratio)
         acc_array.append(acc)
@@ -271,19 +271,19 @@ def initial_population(size, net, args, testloader, criterion, optimizer, qtz_op
     print('prune_ratio_array = ', prune_ratio_array)
     print('acc_array = ', acc_array)
     return population, fitness_array
-    
-    
-    
+
+
+
 def calculate_fitness(chromosome, size, net, args, testloader, criterion, optimizer, qtz_opts, shifting, non_uniform, rate, mode, var): ## size means which chromosome in population
-    
+
     total_prune_ratio = prune_layer(net, args, chromosome, size)
     acc = Eval(testloader, net, criterion, optimizer, -1, qtz_opts, shifting, non_uniform, rate, mode, var)
-    
+
     #print('prune_ratio = ', total_prune_ratio)
     #print('acc = ', acc)
     fitness_score = (total_prune_ratio)*0.9 + (acc)*0.1
     print('fitness_score = ', fitness_score)
-    
+
     return fitness_score, total_prune_ratio, acc
 
 
@@ -297,7 +297,7 @@ def reproduction(population, fitness_array, crossoverRate, mutationRate, size, n
     for i in range (len(population)):
         parent1 = selection(population, fitness_array)
         parent2 = selection(population, fitness_array)
-        
+
         #print('in reproduction population = ', population)
         #print('in reproduction fitness arary = ', fitness_array)
         #print('parent1 = ', parent1)
@@ -316,7 +316,7 @@ def reproduction(population, fitness_array, crossoverRate, mutationRate, size, n
         if prob < mutationRate :
             print('do mutation!!!')
             chromosome = mutation(chromosome)
-       
+
 
         if os.path.isfile(args.resume):#找weight丟到網路架構裡面
             print("=> loading checkpoint '{}'".format(args.resume))
@@ -326,7 +326,7 @@ def reproduction(population, fitness_array, crossoverRate, mutationRate, size, n
             print("=> no checkpoint found at '{}'".format(args.resume))
 
 
-        fitness_score, t_prune_ratio, acc = calculate_fitness(chromosome, size, net, args, testloader, criterion, optimizer, qtz_opts, shifting, non_uniform, rate, mode, var)       
+        fitness_score, t_prune_ratio, acc = calculate_fitness(chromosome, size, net, args, testloader, criterion, optimizer, qtz_opts, shifting, non_uniform, rate, mode, var)
 
         new_population.append(chromosome)
         new_fitness_array.append(fitness_score)
@@ -356,7 +356,7 @@ def selection(population, fitness_array):
     #print('sum = ', _sum)
     choose_idx = random.randint(0,int(_sum))
     #print('choose_idx=', choose_idx)
-    
+
     accum=0
     ret_chromosome= []
     for i in range(len(fitness_array)):
@@ -370,12 +370,12 @@ def selection(population, fitness_array):
             return ret_chromosome
         else:
             accum = accum + (fitness_array[i]*100)
-    
+
     #return ret_chromosome
 
 
 def crossover(parent1, parent2):
-    
+
     #print('parent 1 = ', parent1 , '    parent2 = ', parent2)
     cut_point = random.randint(0,len(parent1))
     #print('cut point = ', cut_point)
@@ -423,14 +423,14 @@ def DynamicVariation(model, var = 5):
 
             #################
             variation = np.random.normal(0, matr.abs().cpu().numpy()/var, matr.shape)
-            
+
             matr -= torch.FloatTensor(variation).cuda().abs() #different with +-
 #            matr *= var
             p.data = matr
 
 
 def map_and_extend_all_layer(_model):
-    
+
     SynapseBit = 8
     CellBit = 4
     numRowPerSynapse = 1
@@ -479,7 +479,7 @@ def map_and_extend_all_layer(_model):
             for key, value in rram_partition_total_sum.items():
                 tmp = [key,value, name]
                 all_sum_list.append(tmp)
-        
+
 
     #all_sum_list = sorted(all_sum_list, key = lambda s:s[1])
     all_sum_list = sorted(all_sum_list, key = lambda s:s[1], reverse = True)
@@ -490,7 +490,7 @@ def map_and_extend_all_layer(_model):
         key, value, layer_name = all_sum_list[i]
 
 
-        
+
 
 
         if layer_name =='features.module.0.weight' or layer_name =='features.module.2.weight' or layer_name =='features.module.5.weight' or layer_name == 'features.module.10.weight' or layer_name == 'features.module.12.weight':
@@ -503,8 +503,8 @@ def map_and_extend_all_layer(_model):
                         param.data = w.reshape(param.data.shape)
 
 
-            
-    
+
+
         if layer_name == 'classifier.0.weight' or layer_name == 'classifier.2.weight':
             for name,param in (_model.named_parameters()):
                 if name == layer_name:
@@ -513,7 +513,7 @@ def map_and_extend_all_layer(_model):
                     if w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow].shape == torch.zeros(128,128).shape:
                         w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(128,128)
                         param.data = w.reshape(param.data.shape)
-    
+
 
 
 
@@ -541,7 +541,7 @@ def compensation(_model, sector, args, idx ):
     SubarrayRow = 128
     SubarrayCol = 128
     cnt=1
-   
+
 
     compensate_n_list=[]
     layer_len_list=[]
@@ -568,7 +568,7 @@ def compensation(_model, sector, args, idx ):
              compensate_n = int(len(rram_partition_total_sum_list)*args.compensation_rate)
              compensate_n_list.append(compensate_n)
              layer_len_list.append(int(len(rram_partition_total_sum_list)))
-   
+
         if len(param.data.size()) == 2:
              row = param.data.shape[1]
              w = param.data.reshape(param.data.shape[0],row)
@@ -590,7 +590,7 @@ def compensation(_model, sector, args, idx ):
              compensate_n = int(len(rram_partition_total_sum_list)*args.compensation_rate)
              compensate_n_list.append(compensate_n)
              layer_len_list.append(int(len(rram_partition_total_sum_list)))
-   
+
     print('compensate_n_list = ', compensate_n_list)
     print('layer_len_list = ', layer_len_list)
 
@@ -611,8 +611,8 @@ def compensation(_model, sector, args, idx ):
     #    print('cnt=',cnt)
     #    print('idx=',idx)
     ########################
-    
-    
+
+
     for name, param in (_model.named_parameters()):
         if len(param.data.size()) == 4:
 
@@ -633,8 +633,8 @@ def compensation(_model, sector, args, idx ):
 
             rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1])
 
-            
-            
+
+
             #if name == 'module.features.module.0.weight':
             #    compensate_n = comp_layer[0]
             #if name == 'module.features.module.2.weight':
@@ -647,7 +647,7 @@ def compensation(_model, sector, args, idx ):
             #    compensate_n = comp_layer[4]
             #if name == 'module.features.module.12.weight':
             #    compensate_n = comp_layer[5]
-            
+
             for cnt in range(idx):
                 if sector[cnt][4]==name:
                     print(name)
@@ -667,7 +667,7 @@ def compensation(_model, sector, args, idx ):
                     #        #tmp_w[j] = ((resume_data-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin) + RealMax
                     #        tmp_w[j] = resume_data
                     #    w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w
-                    #    param.data = w.reshape(param.data.shape)                
+                    #    param.data = w.reshape(param.data.shape)
                     #
                     #    compensate_n_cnt = compensate_n_cnt + 1
                     #    print('len of rram partition totalt sum lisst = ', int(len(rram_partition_total_sum_list)))
@@ -690,9 +690,9 @@ def compensation(_model, sector, args, idx ):
                     #        tmp_w[j] = ((resume_data-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin) + RealMax
                     #    w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w
                     #    compensate_n_cnt = compensate_n_cnt + 1
-                    #    param.data = w.reshape(param.data.shape)                
-                    
-                    
+                    #    param.data = w.reshape(param.data.shape)
+
+
                     key = sector[i][2]
                     tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                     heat_value = int(sector[cnt][1])/16 * (2**CellBit)
@@ -710,9 +710,9 @@ def compensation(_model, sector, args, idx ):
                         #tmp_w[j]=resume_data
                     w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w
                     #compensate_n_cnt = compensate_n_cnt + 1
-                    
+
                     #cnt=cnt+1
-            param.data = w.reshape(param.data.shape)    
+            param.data = w.reshape(param.data.shape)
 
         if len(param.data.size()) == 2:
             #print('name = ', name)
@@ -737,7 +737,7 @@ def compensation(_model, sector, args, idx ):
             #    compensate_n = comp_layer[6]
             #if name == 'module.classifier.2.weight':
             #    compesnate_n = comp_layer[7]
-            
+
             for cnt in range(idx):
 
                 if sector[cnt][4]==name:
@@ -753,12 +753,12 @@ def compensation(_model, sector, args, idx ):
                     #        data_without_thermal_impact = (newdata<=(2**CellBit-heat_value-1)).float() * tmp_w[j]
                     #        data_with_compensate = (newdata>(2**CellBit-heat_value-1)).float() * tmp_w[j]
                     #        resume_data = data_with_compensate + data_without_thermal_impact
-                    #        
+                    #
                     #        #tmp_w[j] = ((resume_data-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin) + RealMax
                     #        tmp_w[j] = resume_data
                     #    w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w
                     #    compensate_n_cnt = compensate_n_cnt + 1
-                    #    param.data = w.reshape(param.data.shape)                
+                    #    param.data = w.reshape(param.data.shape)
                     #else :
                     #    print('===================================================asdasdasdasdasd')
                     #    key = sector[i][2]
@@ -774,8 +774,8 @@ def compensation(_model, sector, args, idx ):
                     #        tmp_w[j] = ((resume_data-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin) + RealMax
                     #    w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w
                     #    compensate_n_cnt = compensate_n_cnt + 1
-                    #    param.data = w.reshape(param.data.shape)                
-                    
+                    #    param.data = w.reshape(param.data.shape)
+
                     key = sector[i][2]
                     tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                     heat_value = int(sector[cnt][1])/16*(2**CellBit)
@@ -801,7 +801,7 @@ def compensation(_model, sector, args, idx ):
 
 
 def thermal_after_placement(_model, args, sector):
-    
+
     realmin=1000
     realmax=-9999
     for name, param in (_model.named_parameters()):
@@ -831,7 +831,7 @@ def thermal_after_placement(_model, args, sector):
             w = param.data.reshape(param.data.shape[0],row)
             numRow = math.ceil(row/SubarrayRow)
             numCol = math.ceil(param.data.shape[0]/SubarrayCol)
-            
+
             ### for alexnet
             if args.arch == 'alexnet':
                 if name == 'module.features.0.weight' or name=='module.features.6.weight' or name=='module.features.8.weight' or name=='module.features.10.weight' or name=='module.classifier.0.weight' or name=='module.classifier.2.weight' or name=='module.classifier.4.weight':
@@ -854,7 +854,7 @@ def thermal_after_placement(_model, args, sector):
                                         reminder = torch.ceil(value%cellrange)
                                         value = torch.floor(value/cellrange)
                                         extend_sub[(numColPerSynapse)*j+k] = reminder
-                           
+
                                 heat_level= int(sector[i][1])
 
                                 for j in range(0, extend_sub.shape[0], (numColPerSynapse)):
@@ -916,7 +916,7 @@ def thermal_after_placement(_model, args, sector):
                                         reminder = torch.ceil(value%cellrange)
                                         value = torch.floor(value/cellrange)
                                         extend_sub[(numColPerSynapse)*j+k] = reminder
-                           
+
                                 heat_level= int(sector[i][1])
 
                                 for j in range(0, extend_sub.shape[0], (numColPerSynapse)):
@@ -1028,7 +1028,7 @@ def thermal_after_placement(_model, args, sector):
 
 
 def thermal_effect(_model, args, sector):
-    
+
 
 
     realmin=1000
@@ -1058,7 +1058,7 @@ def thermal_effect(_model, args, sector):
     SubarrayRow = 128
     SubarrayCol = 128
     print('test')
-  
+
     #level = 3
 
     for name, param in (_model.named_parameters()):
@@ -1098,13 +1098,13 @@ def thermal_effect(_model, args, sector):
             ############# distribution 1 is a better distribution, distribution 2 is a worse distribution
 
             if name == 'features.module.2.weight':
-                
+
                 ####### subarray heat distribution1 #####
                 #different_level = 2
                 #front=0
                 #end=0
                 #for indx in range(different_level):
-                #    if indx == 0:    
+                #    if indx == 0:
                 #        front = 0
                 #        end = 6
                 #        level = 2
@@ -1113,14 +1113,14 @@ def thermal_effect(_model, args, sector):
                 #        end = 9
                 #        level = 1
                 ####################################
-                
-                
+
+
                 ##### subarray heat distribution1 prune and retrain  #####
                 different_level = 3
                 front=0
                 end=0
                 for indx in range(different_level):
-                    if indx == 0:    
+                    if indx == 0:
                         front = 0
                         end = 4
                         level = 0
@@ -1152,7 +1152,7 @@ def thermal_effect(_model, args, sector):
                 #end = 0
                 #for indx in range(different_level):
                 #    if indx==0:
-                #        front = 0 
+                #        front = 0
                 #        end = 4
                 #        level = 0
                 #    if indx==1:
@@ -1165,12 +1165,12 @@ def thermal_effect(_model, args, sector):
 
 
 
-                
+
                     for i in range(front,end):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
-                        
-                        
+
+
                         rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse),int(tmp_w.shape[1]))
                         for j in range(tmp_w.shape[0]):
                             ## normalized data
@@ -1180,13 +1180,13 @@ def thermal_effect(_model, args, sector):
                             for k in range(numColPerSynapse):
                                 reminder = torch.ceil(value%cellrange)
                                 value = torch.floor(value/cellrange) ## we use floor here instead of ceil in original Chip.cpp
-                                rram_map[(numColPerSynapse)*j+k] = reminder 
+                                rram_map[(numColPerSynapse)*j+k] = reminder
 
 
                         w_prune = torch.zeros(tmp_w.shape)
                         for j in range(0,rram_map.shape[0],(numColPerSynapse)):
-                            
-                            
+
+
                             ### this is for weightbit = 8 cellbit =4
                             if numColPerSynapse == 2:
                                 resumedata_prune = (rram_map[j]>(2**CellBit-level-1)).float() * (2**CellBit-level-1) + (rram_map[j+1]>(2**CellBit-level-1)).float() * (2**CellBit-level-1) * (2**CellBit)
@@ -1196,37 +1196,37 @@ def thermal_effect(_model, args, sector):
                             if numColPerSynapse == 4:
                                 resumedata_prune = (rram_map[j]>(2**CellBit-level-1)).float()*(2**CellBit-level-1) + (rram_map[j+1]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit) + (rram_map[j+2]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)*(2**CellBit)
                                 resumedata_noprune = (rram_map[j]<=(2**CellBit-level-1)).float()*(rram_map[j]) + (rram_map[j+1]<=(2**CellBit-level-1)).float()*(rram_map[j+1])*(2**CellBit) + (rram_map[j+2]<=(2**CellBit-level-1)).float()*(rram_map[j+2])*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]<=(2**CellBit-level-1)).float()*(rram_map[j+3])*(2**CellBit)*(2**CellBit)*(2**CellBit)
-                            
+
                             if numColPerSynapse == 8:
                                 resumedata_prune = 0
                                 resumedata_noprune = rram_map[j] + rram_map[j+1]*(2**CellBit) + rram_map[j+2]*(2**CellBit)*(2**CellBit) + rram_map[j+3]*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+4]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+5]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+6]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+7]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
 
-                           
-                            
+
+
                             resumedata = resumedata_prune + resumedata_noprune
                             w_prune[int(j/numColPerSynapse)] = ((resumedata-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin)+ RealMax
 
-                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune 
-                        
-                        
-                        #print('after = prune number {} = {}'.format(i,w_prune)) 
+                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune
+
+
+                        #print('after = prune number {} = {}'.format(i,w_prune))
                 param.data = w.reshape(param.data.shape)
-            
-            
+
+
             if name == 'features.module.5.weight':
                 ratio = 1
                 level = 1
                 pruned_subarray = math.ceil(len(rram_partition_total_sum) * ratio)
-                
-               
+
+
 
                 ####### subarray heat distribution1 #####
                 #different_level = 2
                 #front=0
                 #end=0
                 #for indx in range(different_level):
-                #    if indx == 0:    
+                #    if indx == 0:
                 #        front = 0
                 #        end = 15
                 #        level = 2
@@ -1240,14 +1240,14 @@ def thermal_effect(_model, args, sector):
                 front=0
                 end=0
                 for indx in range(different_level):
-                    if indx == 0:    
+                    if indx == 0:
                         front = 0
                         end = 9
                         level = 0
                     if indx == 1:
                         front = 9
                         end = 15
-                        level = 6 
+                        level = 6
                     if indx == 2:
                         front = 15
                         end = 18
@@ -1285,8 +1285,8 @@ def thermal_effect(_model, args, sector):
                     for i in range(front,end):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
-                        
-                        
+
+
                         rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse),int(tmp_w.shape[1]))
                         for j in range(tmp_w.shape[0]):
                             ## normalized data
@@ -1296,9 +1296,9 @@ def thermal_effect(_model, args, sector):
                             for k in range(numColPerSynapse):
                                 reminder = torch.ceil(value%cellrange)
                                 value = torch.floor(value/cellrange) ## we use floor here instead of ceil in original Chip.cpp
-                                rram_map[(numColPerSynapse)*j+k] = reminder 
+                                rram_map[(numColPerSynapse)*j+k] = reminder
 
-                        
+
 
                         w_prune = torch.zeros(tmp_w.shape)
                         for j in range(0,rram_map.shape[0],(numColPerSynapse)):
@@ -1312,33 +1312,33 @@ def thermal_effect(_model, args, sector):
                             if numColPerSynapse == 4:
                                 resumedata_prune = (rram_map[j]>(2**CellBit-level-1)).float()*(2**CellBit-level-1) + (rram_map[j+1]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit) + (rram_map[j+2]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)*(2**CellBit)
                                 resumedata_noprune = (rram_map[j]<=(2**CellBit-level-1)).float()*(rram_map[j]) + (rram_map[j+1]<=(2**CellBit-level-1)).float()*(rram_map[j+1])*(2**CellBit) + (rram_map[j+2]<=(2**CellBit-level-1)).float()*(rram_map[j+2])*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]<=(2**CellBit-level-1)).float()*(rram_map[j+3])*(2**CellBit)*(2**CellBit)*(2**CellBit)
-                            
+
                             if numColPerSynapse == 8:
                                 resumedata_prune = 0
                                 resumedata_noprune = rram_map[j] + rram_map[j+1]*(2**CellBit) + rram_map[j+2]*(2**CellBit)*(2**CellBit) + rram_map[j+3]*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+4]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+5]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+6]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+7]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
 
-                            
+
                             resumedata = resumedata_prune + resumedata_noprune
                             w_prune[int(j/numColPerSynapse)] = ((resumedata-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin)+ RealMax
 
-                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune 
-                        
-                        
-                        #print('after = prune number {} = {}'.format(i,w_prune)) 
+                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune
+
+
+                        #print('after = prune number {} = {}'.format(i,w_prune))
                 param.data = w.reshape(param.data.shape)
 
 
 
             if name == 'features.module.7.weight':
-              
-                
-                ####### subarray heat distribution1 #####  
+
+
+                ####### subarray heat distribution1 #####
                 #different_level = 2
                 #front=0
                 #end=0
                 #for indx in range(different_level):
-                #    if indx == 0:    
+                #    if indx == 0:
                 #        front = 0
                 #        end = 24
                 #        level = 2
@@ -1347,12 +1347,12 @@ def thermal_effect(_model, args, sector):
                 #        end = 36
                 #        level = 1
                 ###########################################
-                 ###### subarray heat distribution1 #####  
+                 ###### subarray heat distribution1 #####
                 different_level = 3
                 front=0
                 end=0
                 for indx in range(different_level):
-                    if indx == 0:    
+                    if indx == 0:
                         front = 0
                         end = 18
                         level = 0
@@ -1365,8 +1365,8 @@ def thermal_effect(_model, args, sector):
                         end = 36
                         level = 5
                 ##########################################
-                
-                
+
+
                 ###### subarray heat distribution2 #####
                 #different_level = 4
                 #front=0
@@ -1412,7 +1412,7 @@ def thermal_effect(_model, args, sector):
                 #        end= 36
                 #        level= 2
                 ##################################################################
-                
+
 
 
 
@@ -1421,8 +1421,8 @@ def thermal_effect(_model, args, sector):
                         key,value = rram_partition_total_sum_list[i]
                         #print('key = ', key)
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
-                        
-                        
+
+
                         rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse),int(tmp_w.shape[1]))
                         for j in range(tmp_w.shape[0]):
                             ## normalized data
@@ -1432,8 +1432,8 @@ def thermal_effect(_model, args, sector):
                             for k in range(numColPerSynapse):
                                 reminder = torch.ceil(value%cellrange)
                                 value = torch.floor(value/cellrange) ## we use floor here instead of ceil in original Chip.cpp
-                                rram_map[(numColPerSynapse)*j+k] = reminder 
-                        
+                                rram_map[(numColPerSynapse)*j+k] = reminder
+
 
 
                         w_prune = torch.zeros(tmp_w.shape)
@@ -1448,26 +1448,26 @@ def thermal_effect(_model, args, sector):
                             if numColPerSynapse == 4:
                                 resumedata_prune = (rram_map[j]>(2**CellBit-level-1)).float()*(2**CellBit-level-1) + (rram_map[j+1]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit) + (rram_map[j+2]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)*(2**CellBit)
                                 resumedata_noprune = (rram_map[j]<=(2**CellBit-level-1)).float()*(rram_map[j]) + (rram_map[j+1]<=(2**CellBit-level-1)).float()*(rram_map[j+1])*(2**CellBit) + (rram_map[j+2]<=(2**CellBit-level-1)).float()*(rram_map[j+2])*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]<=(2**CellBit-level-1)).float()*(rram_map[j+3])*(2**CellBit)*(2**CellBit)*(2**CellBit)
-                            
+
                             if numColPerSynapse == 8:
                                 resumedata_prune = 0
                                 resumedata_noprune = rram_map[j] + rram_map[j+1]*(2**CellBit) + rram_map[j+2]*(2**CellBit)*(2**CellBit) + rram_map[j+3]*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+4]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+5]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+6]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+7]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
-   
-                            
+
+
                             resumedata = resumedata_prune + resumedata_noprune
                             w_prune[int(j/numColPerSynapse)] = ((resumedata-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin)+ RealMax
 
-                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune 
-                        
-                        
-                        #print('after = prune number {} = {}'.format(i,w_prune)) 
+                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune
+
+
+                        #print('after = prune number {} = {}'.format(i,w_prune))
                 param.data = w.reshape(param.data.shape)
 
             if name == 'features.module.10.weight':
-                
-                
-                
+
+
+
                 ####### subarray heat distribution1 #####
                 #different_level = 3
                 #front=0
@@ -1486,7 +1486,7 @@ def thermal_effect(_model, args, sector):
                 #        end = 72
                 #        level = 0
                 ##########################################
-                
+
                 ###### subarray heat distribution1 prune and retrain #####
                 different_level = 3
                 front=0
@@ -1532,7 +1532,7 @@ def thermal_effect(_model, args, sector):
                 #        end=72
                 #        level=1
                 ##############################################
-                
+
                 ###### subarray heat distribution2 after prune and retrain ######
                 #different_level=2
                 #front=0
@@ -1552,8 +1552,8 @@ def thermal_effect(_model, args, sector):
                     for i in range(front,end):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
-                        
-                        
+
+
                         rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse),int(tmp_w.shape[1]))
                         for j in range(tmp_w.shape[0]):
                             ## normalized data
@@ -1563,7 +1563,7 @@ def thermal_effect(_model, args, sector):
                             for k in range(numColPerSynapse):
                                 reminder = torch.ceil(value%cellrange)
                                 value = torch.floor(value/cellrange) ## we use floor here instead of ceil in original Chip.cpp
-                                rram_map[(numColPerSynapse)*j+k] = reminder 
+                                rram_map[(numColPerSynapse)*j+k] = reminder
 
                         w_prune = torch.zeros(tmp_w.shape)
                         for j in range(0,rram_map.shape[0],(numColPerSynapse)):
@@ -1578,25 +1578,25 @@ def thermal_effect(_model, args, sector):
                             if numColPerSynapse == 4:
                                 resumedata_prune = (rram_map[j]>(2**CellBit-level-1)).float()*(2**CellBit-level-1) + (rram_map[j+1]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit) + (rram_map[j+2]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)*(2**CellBit)
                                 resumedata_noprune = (rram_map[j]<=(2**CellBit-level-1)).float()*(rram_map[j]) + (rram_map[j+1]<=(2**CellBit-level-1)).float()*(rram_map[j+1])*(2**CellBit) + (rram_map[j+2]<=(2**CellBit-level-1)).float()*(rram_map[j+2])*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]<=(2**CellBit-level-1)).float()*(rram_map[j+3])*(2**CellBit)*(2**CellBit)*(2**CellBit)
-                            
+
                             if numColPerSynapse == 8:
                                 resumedata_prune = 0
                                 resumedata_noprune = rram_map[j] + rram_map[j+1]*(2**CellBit) + rram_map[j+2]*(2**CellBit)*(2**CellBit) + rram_map[j+3]*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+4]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+5]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+6]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+7]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
 
-                            
+
                             resumedata = resumedata_prune + resumedata_noprune
                             #print('resumedata = ', resumedata)
                             w_prune[int(j/numColPerSynapse)] = ((resumedata-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin)+ RealMax
 
-                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune 
-                        
-                        
-                        #print('after = prune number {} = {}'.format(i,w_prune)) 
+                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune
+
+
+                        #print('after = prune number {} = {}'.format(i,w_prune))
                 param.data = w.reshape(param.data.shape)
 
             if name == 'features.module.12.weight':
-                
+
                 ####### subarray heat distribution1 #####
                 #different_level = 4
                 #front=0
@@ -1623,7 +1623,7 @@ def thermal_effect(_model, args, sector):
                 #        end = 144
                 #        level = 0
                 #############################################
-                
+
                 ###### subarray heat distribution1 prune and retrain #####
                 different_level = 2
                 front=0
@@ -1638,7 +1638,7 @@ def thermal_effect(_model, args, sector):
                         end = 144
                         level = 4
                 ############################################
-                
+
 
                 ###### subarray heat distribution2 #####
                 #different_level = 4
@@ -1666,7 +1666,7 @@ def thermal_effect(_model, args, sector):
                 #        end = 144
                 #        level = 1
                 #########################################
-               
+
 
                 ####### subarray heat distribution2 after pruning and retrain#######
                 #different_level = 2
@@ -1682,15 +1682,15 @@ def thermal_effect(_model, args, sector):
                 #        end= 144
                 #        level= 1
                 ###################################################################
-            
 
 
-                
+
+
                     for i in range(front,end):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
-                        
-                        
+
+
                         rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse),int(tmp_w.shape[1]))
                         for j in range(tmp_w.shape[0]):
                             ## normalized data
@@ -1700,7 +1700,7 @@ def thermal_effect(_model, args, sector):
                             for k in range(numColPerSynapse):
                                 reminder = torch.ceil(value%cellrange)
                                 value = torch.floor(value/cellrange) ## we use floor here instead of ceil in original Chip.cpp
-                                rram_map[(numColPerSynapse)*j+k] = reminder 
+                                rram_map[(numColPerSynapse)*j+k] = reminder
 
 
                         w_prune = torch.zeros(tmp_w.shape)
@@ -1715,22 +1715,22 @@ def thermal_effect(_model, args, sector):
                             if numColPerSynapse == 4:
                                 resumedata_prune = (rram_map[j]>(2**CellBit-level-1)).float()*(2**CellBit-level-1) + (rram_map[j+1]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit) + (rram_map[j+2]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)*(2**CellBit)
                                 resumedata_noprune = (rram_map[j]<=(2**CellBit-level-1)).float()*(rram_map[j]) + (rram_map[j+1]<=(2**CellBit-level-1)).float()*(rram_map[j+1])*(2**CellBit) + (rram_map[j+2]<=(2**CellBit-level-1)).float()*(rram_map[j+2])*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]<=(2**CellBit-level-1)).float()*(rram_map[j+3])*(2**CellBit)*(2**CellBit)*(2**CellBit)
-                            
+
                             if numColPerSynapse == 8:
                                 resumedata_prune = 0
                                 resumedata_noprune = rram_map[j] + rram_map[j+1]*(2**CellBit) + rram_map[j+2]*(2**CellBit)*(2**CellBit) + rram_map[j+3]*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+4]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+5]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+6]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+7]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
 
-                            
+
                             resumedata = resumedata_prune + resumedata_noprune
                             w_prune[int(j/numColPerSynapse)] = ((resumedata-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin)+ RealMax
 
-                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune 
-                        
-                        
-                        #print('after = prune number {} = {}'.format(i,w_prune)) 
+                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune
+
+
+                        #print('after = prune number {} = {}'.format(i,w_prune))
                 param.data = w.reshape(param.data.shape)
-            
+
 
 
 
@@ -1754,7 +1754,7 @@ def thermal_effect(_model, args, sector):
             for key, value in rram_partition_total_sum.items():
                 tmp = [key,value]
                 rram_partition_total_sum_list.append(tmp)
-            
+
             if args.experiment_group:
                 rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1])
                 #rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1], reverse = True)
@@ -1762,9 +1762,9 @@ def thermal_effect(_model, args, sector):
                 random.shuffle(rram_partition_total_sum_list)
 
             if name == 'classifier.0.weight':
-                
-                
-                
+
+
+
                 ######### subarray heat distribution 1 #######
                 #different_level = 5
                 #front=0
@@ -1791,7 +1791,7 @@ def thermal_effect(_model, args, sector):
                 #        end = 512
                 #        level = 0
                 # ############################################
-                
+
                 ######## subarray heat distribution 1 prune and retrain #######
                 different_level = 5
                 front=0
@@ -1871,12 +1871,12 @@ def thermal_effect(_model, args, sector):
                 #        level= 1
                 #################################################################
 
-                
+
                     for i in range(front,end):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
-                        
-                        
+
+
                         rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse),int(tmp_w.shape[1]))
                         for j in range(tmp_w.shape[0]):
                             ## normalized data
@@ -1886,7 +1886,7 @@ def thermal_effect(_model, args, sector):
                             for k in range(numColPerSynapse):
                                 reminder = torch.ceil(value%cellrange)
                                 value = torch.floor(value/cellrange) ## we use floor here instead of ceil in original Chip.cpp
-                                rram_map[(numColPerSynapse)*j+k] = reminder 
+                                rram_map[(numColPerSynapse)*j+k] = reminder
 
 
                         w_prune = torch.zeros(tmp_w.shape)
@@ -1901,23 +1901,23 @@ def thermal_effect(_model, args, sector):
                             if numColPerSynapse == 4:
                                 resumedata_prune = (rram_map[j]>(2**CellBit-level-1)).float()*(2**CellBit-level-1) + (rram_map[j+1]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit) + (rram_map[j+2]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)*(2**CellBit)
                                 resumedata_noprune = (rram_map[j]<=(2**CellBit-level-1)).float()*(rram_map[j]) + (rram_map[j+1]<=(2**CellBit-level-1)).float()*(rram_map[j+1])*(2**CellBit) + (rram_map[j+2]<=(2**CellBit-level-1)).float()*(rram_map[j+2])*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]<=(2**CellBit-level-1)).float()*(rram_map[j+3])*(2**CellBit)*(2**CellBit)*(2**CellBit)
-                            
+
                             if numColPerSynapse == 8:
                                 resumedata_prune = 0
                                 resumedata_noprune = rram_map[j] + rram_map[j+1]*(2**CellBit) + rram_map[j+2]*(2**CellBit)*(2**CellBit) + rram_map[j+3]*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+4]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+5]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+6]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+7]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
-                           
+
                             resumedata = resumedata_prune + resumedata_noprune
                             w_prune[int(j/numColPerSynapse)] = ((resumedata-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin)+ RealMax
 
-                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune 
-                        
-                        
+                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune
+
+
                 param.data = w.reshape(param.data.shape)
 
-            
+
             if name == 'classifier.2.weight':
-                
+
                 ######### subarray heat distribution 1 ####################
                 #different_level = 2
                 #front=0
@@ -1932,7 +1932,7 @@ def thermal_effect(_model, args, sector):
                 #        end = 8
                 #        level = 1
                 ###########################################################
-                
+
                 ######## subarray heat distribution 1 prune and retrain####################
                 different_level = 2
                 front=0
@@ -1963,8 +1963,8 @@ def thermal_effect(_model, args, sector):
                 #        end = 8
                 #        level = 4
                 ########################################################
-                
-                
+
+
                 ######## subarray heat distribution 2 after prune and retrain##　
                 #different_level = 3
                 #front= 0
@@ -1988,8 +1988,8 @@ def thermal_effect(_model, args, sector):
                     for i in range(front,end):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
-                        
-                        
+
+
                         rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse),int(tmp_w.shape[1]))
                         for j in range(tmp_w.shape[0]):
                             ## normalized data
@@ -1999,7 +1999,7 @@ def thermal_effect(_model, args, sector):
                             for k in range(numColPerSynapse):
                                 reminder = torch.ceil(value%cellrange)
                                 value = torch.floor(value/cellrange) ## we use floor here instead of ceil in original Chip.cpp
-                                rram_map[(numColPerSynapse)*j+k] = reminder 
+                                rram_map[(numColPerSynapse)*j+k] = reminder
 
 
                         w_prune = torch.zeros(tmp_w.shape)
@@ -2014,30 +2014,30 @@ def thermal_effect(_model, args, sector):
                             if numColPerSynapse == 4:
                                 resumedata_prune = (rram_map[j]>(2**CellBit-level-1)).float()*(2**CellBit-level-1) + (rram_map[j+1]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit) + (rram_map[j+2]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]>(2**CellBit-level-1)).float()*(2**CellBit-level-1)*(2**CellBit)*(2**CellBit)*(2**CellBit)
                                 resumedata_noprune = (rram_map[j]<=(2**CellBit-level-1)).float()*(rram_map[j]) + (rram_map[j+1]<=(2**CellBit-level-1)).float()*(rram_map[j+1])*(2**CellBit) + (rram_map[j+2]<=(2**CellBit-level-1)).float()*(rram_map[j+2])*(2**CellBit)*(2**CellBit)  + (rram_map[j+3]<=(2**CellBit-level-1)).float()*(rram_map[j+3])*(2**CellBit)*(2**CellBit)*(2**CellBit)
-                            
+
                             if numColPerSynapse == 8:
                                 resumedata_prune = 0
                                 resumedata_noprune = rram_map[j] + rram_map[j+1]*(2**CellBit) + rram_map[j+2]*(2**CellBit)*(2**CellBit) + rram_map[j+3]*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+4]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+5]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+6]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit) + rram_map[j+7]*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
 
-                            
+
                             resumedata = resumedata_prune + resumedata_noprune
                             w_prune[int(j/numColPerSynapse)] = ((resumedata-NormalizedMax)*(RealMax-RealMin))/(NormalizedMax-NormalizedMin)+ RealMax
 
-                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune 
-                        
-                        
+                        w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = w_prune
+
+
                 param.data = w.reshape(param.data.shape)
 
 
-            
-            
-            
+
+
+
 
 
 def nonuniform_quantization(_model):
     print('===================================== start nonuniform quantization ===============================================')
-    
+
 
     realmin=1000
     realmax=-9999
@@ -2094,14 +2094,14 @@ def nonuniform_quantization(_model):
             #rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1], reverse = True)
 
             if name == 'features.module.2.weight':
-                
-                
+
+
                 ####### subarray heat distribution1 #####
                 #different_level = 2
                 #front=0
                 #end=0
                 #for indx in range(different_level):
-                #    if indx == 0:    
+                #    if indx == 0:
                 #        front = 0
                 #        end = 6
                 #        level = 2
@@ -2110,8 +2110,8 @@ def nonuniform_quantization(_model):
                 #        end = 9
                 #        level = 1
                 ####################################
-                
-                
+
+
                 #### subarray heat distribution1 prune and retrain  #####
                 #different_level = 3
                 #front=0
@@ -2119,7 +2119,7 @@ def nonuniform_quantization(_model):
                 #n_q=0
                 #cell_limit = 7
                 #for indx in range(different_level):
-                #    if indx == 0:    
+                #    if indx == 0:
                 #        front = 0
                 #        end = 4
                 #        level = 0
@@ -2168,7 +2168,7 @@ def nonuniform_quantization(_model):
                 #front=0
                 #end=0
                 #n_q = 0
-                #cell_limit= 7 
+                #cell_limit= 7
                 #for indx in range(different_level):
                 #    if indx == 0:
                 #        front = 0
@@ -2176,7 +2176,7 @@ def nonuniform_quantization(_model):
                 #        level = 4
                 #        n_q = 0
                 ########################################################
-                
+
                 ####### subarray heat distribution2 after prunning and retrain####
                 #different_level = 2
                 #front = 0
@@ -2185,7 +2185,7 @@ def nonuniform_quantization(_model):
                 #cell_limit= 7
                 #for indx in range(different_level):
                 #    if indx==0:
-                #        front = 0 
+                #        front = 0
                 #        end = 4
                 #        level = 0
                 #        n_q = 0
@@ -2205,8 +2205,8 @@ def nonuniform_quantization(_model):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                         #print('key = {} , value = {}'.format(key, value))
-                        
-                        if n_q == 0: 
+
+                        if n_q == 0:
                             rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse), int(tmp_w.shape[1]))
                         if n_q == 1:
                             rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse)*2, int(tmp_w.shape[1]))
@@ -2261,7 +2261,7 @@ def nonuniform_quantization(_model):
                                     #print('j=',j)
                                     #print('rram_map size = ', rram_map.shape)
                                     resumedata = (rram_map[j]+rram_map[j+1]) + (rram_map[j+2]+rram_map[j+3])*(2**CellBit)
-                
+
                                 if numColPerSynapse == 4:
                                     resumedata = (rram_map[j]+rram_map[j+1]) + (rram_map[j+2]+rram_map[j+3])*(2**CellBit) + (rram_map[j+3]+rram_map[j+4])*(2**CellBit)*(2**CellBit) + (rram_map[j+5]+rram_map[j+6])*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
@@ -2281,7 +2281,7 @@ def nonuniform_quantization(_model):
 
 
             if name == 'features.module.5.weight':
-                
+
 
                 ####### subarray heat distribution1 #####
                 #different_level = 2
@@ -2297,8 +2297,8 @@ def nonuniform_quantization(_model):
                 #        end = 18
                 #        level = 1
                 ##########################################
-                
-                
+
+
                 ###### subarray heat distribution1 prune and retrain #####
                 #different_level = 3
                 #front=0
@@ -2363,7 +2363,7 @@ def nonuniform_quantization(_model):
                 #front=0
                 #end=0
                 #n_q = 0
-                #cell_limit= 7 
+                #cell_limit= 7
                 #for indx in range(different_level):
                 #    if indx == 0:
                 #        front = 0
@@ -2371,13 +2371,13 @@ def nonuniform_quantization(_model):
                 #        level = 4
                 #        n_q = 0
                 ###############################################
-                
+
                 ###### subarray heat distribution2 after pruning and retrain
                 #different_level = 2
                 #front =0
                 #end = 0
                 #n_q=0
-                #cell_limit= 7 
+                #cell_limit= 7
                 #for indx in range(different_level):
                 #    if indx==0:
                 #        front= 0
@@ -2398,8 +2398,8 @@ def nonuniform_quantization(_model):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                         #print('key = {} , value = {}'.format(key, value))
-                        
-                        if n_q == 0: 
+
+                        if n_q == 0:
                             rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse), int(tmp_w.shape[1]))
                         if n_q == 1:
                             rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse)*2, int(tmp_w.shape[1]))
@@ -2454,7 +2454,7 @@ def nonuniform_quantization(_model):
                                     #print('j=',j)
                                     #print('rram_map size = ', rram_map.shape)
                                     resumedata = (rram_map[j]+rram_map[j+1]) + (rram_map[j+2]+rram_map[j+3])*(2**CellBit)
-                
+
                                 if numColPerSynapse == 4:
                                     resumedata = (rram_map[j]+rram_map[j+1]) + (rram_map[j+2]+rram_map[j+3])*(2**CellBit) + (rram_map[j+3]+rram_map[j+4])*(2**CellBit)*(2**CellBit) + (rram_map[j+5]+rram_map[j+6])*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
@@ -2475,7 +2475,7 @@ def nonuniform_quantization(_model):
 
 
             if name == 'features.module.7.weight':
-                
+
 
                 ####### subarray heat distribution1 #####
                 #different_level = 2
@@ -2491,8 +2491,8 @@ def nonuniform_quantization(_model):
                 #        end = 36
                 #        level = 1
                 ###########################################
-                
-                
+
+
                 ###### subarray heat distribution1 prune and retrain#####
                 #different_level = 3
                 #front=0
@@ -2548,7 +2548,7 @@ def nonuniform_quantization(_model):
 
 
                 ###### subarray heat distribution2  ########################
-                #different_level = 4 
+                #different_level = 4
                 #front=0
                 #end=0
                 #n_q = 0
@@ -2575,7 +2575,7 @@ def nonuniform_quantization(_model):
                 #        level = 1
                 #        n_q = 0
                 #
-                ##################################    
+                ##################################
 
 
                 ######## subarray heat distribution2 after pruning and retrain####
@@ -2615,8 +2615,8 @@ def nonuniform_quantization(_model):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                         #print('key = {} , value = {}'.format(key, value))
-                        
-                        if n_q == 0: 
+
+                        if n_q == 0:
                             rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse), int(tmp_w.shape[1]))
                         if n_q == 1:
                             rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse)*2, int(tmp_w.shape[1]))
@@ -2671,7 +2671,7 @@ def nonuniform_quantization(_model):
                                     #print('j=',j)
                                     #print('rram_map size = ', rram_map.shape)
                                     resumedata = (rram_map[j]+rram_map[j+1]) + (rram_map[j+2]+rram_map[j+3])*(2**CellBit)
-                
+
                                 if numColPerSynapse == 4:
                                     resumedata = (rram_map[j]+rram_map[j+1]) + (rram_map[j+2]+rram_map[j+3])*(2**CellBit) + (rram_map[j+3]+rram_map[j+4])*(2**CellBit)*(2**CellBit) + (rram_map[j+5]+rram_map[j+6])*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
@@ -2687,7 +2687,7 @@ def nonuniform_quantization(_model):
 
                 param.data = w.reshape(param.data.shape)
 
-           
+
             if name == 'features.module.10.weight':
 
                 ####### subarray heat distribution1 #####
@@ -2821,14 +2821,14 @@ def nonuniform_quantization(_model):
 
 
 
-                    
+
 
                     for i in range(front,end):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                         #print('key = {} , value = {}'.format(key, value))
-                        
-                        if n_q == 0: 
+
+                        if n_q == 0:
                             rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse), int(tmp_w.shape[1]))
                         if n_q == 1:
                             rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse)*2, int(tmp_w.shape[1]))
@@ -2883,7 +2883,7 @@ def nonuniform_quantization(_model):
                                     #print('j=',j)
                                     #print('rram_map size = ', rram_map.shape)
                                     resumedata = (rram_map[j]+rram_map[j+1]) + (rram_map[j+2]+rram_map[j+3])*(2**CellBit)
-                
+
                                 if numColPerSynapse == 4:
                                     resumedata = (rram_map[j]+rram_map[j+1]) + (rram_map[j+2]+rram_map[j+3])*(2**CellBit) + (rram_map[j+3]+rram_map[j+4])*(2**CellBit)*(2**CellBit) + (rram_map[j+5]+rram_map[j+6])*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
@@ -3010,13 +3010,13 @@ def nonuniform_quantization(_model):
                 #        level = 0
                 #        n_q = 0
                 #####################################################################
-                    
+
                 ####### subarray heat distribution2 after pruning and retrain#######
                 #different_level = 2
                 #front=0
                 #end=0
                 #n_q=0
-                #cell_limit= 7 
+                #cell_limit= 7
                 #for indx in range(different_level):
                 #    if indx==0:
                 #        front= 0
@@ -3039,8 +3039,8 @@ def nonuniform_quantization(_model):
                         key,value = rram_partition_total_sum_list[i]
                         tmp_w = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                         #print('key = {} , value = {}'.format(key, value))
-                        
-                        if n_q == 0: 
+
+                        if n_q == 0:
                             rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse), int(tmp_w.shape[1]))
                         if n_q == 1:
                             rram_map = torch.zeros(int(tmp_w.shape[0]*numColPerSynapse)*2, int(tmp_w.shape[1]))
@@ -3095,7 +3095,7 @@ def nonuniform_quantization(_model):
                                     #print('j=',j)
                                     #print('rram_map size = ', rram_map.shape)
                                     resumedata = (rram_map[j]+rram_map[j+1]) + (rram_map[j+2]+rram_map[j+3])*(2**CellBit)
-                
+
                                 if numColPerSynapse == 4:
                                     resumedata = (rram_map[j]+rram_map[j+1]) + (rram_map[j+2]+rram_map[j+3])*(2**CellBit) + (rram_map[j+3]+rram_map[j+4])*(2**CellBit)*(2**CellBit) + (rram_map[j+5]+rram_map[j+6])*(2**CellBit)*(2**CellBit)*(2**CellBit)
 
@@ -3115,7 +3115,7 @@ def nonuniform_quantization(_model):
 
 
 
-    
+
         if len(param.data.size()) == 2 :
             row = param.data.shape[1]
             col = param.data.shape[0]*numColPerSynapse
@@ -3139,7 +3139,7 @@ def nonuniform_quantization(_model):
             #rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1],reverse=True)
 
             if name == 'classifier.0.weight':
-               
+
 
 
                 ######### subarray heat distribution 1 #######
@@ -3258,7 +3258,7 @@ def nonuniform_quantization(_model):
                         level = 0
                         n_q = 0
                 ################################################
-      
+
 
 
 
@@ -3488,7 +3488,7 @@ def nonuniform_quantization(_model):
                 #front= 0
                 #end=0
                 #n_q=1
-                #cell_limit= 7 
+                #cell_limit= 7
                 #for indx in range(different_level):
                 #    if indx==0:
                 #        front= 0
@@ -3588,9 +3588,9 @@ def nonuniform_quantization(_model):
 
 
 #def prune_layer(_model,args, chromosome, size): ### for GA use
-def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
-#def prune_layer(_model,args):
-   
+#def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
+def prune_layer(_model,args):
+
     realmin=1000
     realmax=-9999
     for name, param in (_model.named_parameters()):
@@ -3622,23 +3622,23 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
     len_ts = 0
     total_pruned_cell = 0
     total_subarray_cell = 0
-    all_list= [] 
+    all_list= []
     for name, param in (_model.named_parameters()):
         ## map convolutional layer into rram crossbar with 8bit weight and 4bit cellbit
         if len(param.data.size()) == 4 :
-            
+
 
             row = param.data.shape[1]*param.data.shape[2]*param.data.shape[3]
             #col = param.data.shape[0]*numColPerSynapse
             w = param.data.reshape(param.data.shape[0],row)
             #rram_map = torch.zeros(int(col),int(row))
-           
+
             numRow = math.ceil(row/SubarrayRow)
             numCol = math.ceil(param.data.shape[0]/SubarrayCol)
             rram_partition = {}
             rram_partition_row_sum = {} ## a row sum in subarray
             rram_partition_total_sum = {} ## sum of subarray
-            rram_partition_total_sum_list = []            
+            rram_partition_total_sum_list = []
             for i in range(numCol):
                 for j in range(numRow):
                     rram_partition[i,j] = w[i*SubarrayCol:(i+1)*SubarrayCol, j*SubarrayRow:(j+1)*SubarrayRow]
@@ -3648,14 +3648,14 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                 all_tmp = [key, value, name]
                 rram_partition_total_sum_list.append(tmp)
                 all_list.append(all_tmp)
-            
+
             rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1])
             #rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1], reverse = True)
-            
+
             len_ts += len(rram_partition_total_sum)
-            
-            
-            ############## for vgg8 ##################### 
+
+
+            ############## for vgg8 #####################
             if args.arch == 'vgg8':
                 #print('name = ', name)
                 #ratio=int(args.prune_ratio)/100
@@ -3705,7 +3705,7 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                         w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(128,128)
                     #print('layer4 pruned percentage = ', pruned_subarray/len(rram_partition_total_sum))
                     total_pruned_cell += pruned_subarray*SubarrayRow*SubarrayCol
-                
+
                 if name == 'module.features.module.10.weight':
                     #print('layer 5 prune ratio = ', chromosome[4])
                     #ratio = chromosome[4]/100
@@ -3736,9 +3736,9 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                     #print('layer6 pruned percentage = ', pruned_subarray/len(rram_partition_total_sum))
                     total_pruned_cell += pruned_subarray*SubarrayRow*SubarrayCol
 
-                
+
                 param.data = w.reshape(param.data.shape)
-        
+
 
             if args.arch == 'vgg11':
                 ratio= int(args.prune_ratio)/100
@@ -3885,7 +3885,7 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                     total_pruned_cell += pruned_subarray*SubarrayRow*SubarrayCol
 
                 param.data = w.reshape(param.data.shape)
-            
+
             if args.arch == 'resnet34':
                 ratio = int(args.prune_ratio)/100
                 print(name)
@@ -3899,9 +3899,9 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                         w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(a.shape)
                     print(name,' pruned percentage = ', pruned_subarray/len(rram_partition_total_sum))
                     total_pruned_cell += pruned_subarray*SubarrayRow*SubarrayCol
-                
+
                 param.data = w.reshape(param.data.shape)
-                
+
 
 
 
@@ -3914,7 +3914,7 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
             col = param.data.shape[0]*numColPerSynapse
             w = param.data.reshape(param.data.shape[0],row)
             rram_map = torch.zeros(int(col),int(row))
-          
+
 
             numRow = math.ceil(row/SubarrayRow)
             numCol = math.ceil(param.data.shape[0]/SubarrayCol)
@@ -3928,7 +3928,7 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                     rram_partition_row_sum[i,j] = torch.sum(rram_partition[i,j], dim=1)
                     rram_partition_total_sum[i,j] = torch.sum(torch.abs(rram_partition[i,j]))
                     #rram_partition_total_sum[i,j] = torch.sum(rram_partition[i,j])
-            
+
             for key, value in rram_partition_total_sum.items():
                 tmp = [key,value]
                 all_tmp = [key, value, name]
@@ -3954,18 +3954,18 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                     for i in range(pruned_subarray):
                         key,value = rram_partition_total_sum_list[i]
                         w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(128,128)
-                        
+
                         for k in range(len(all_list)):
                             if all_list[k][2]=='classifier.0.weight':
                                 if all_list[k][0] == key:
                                     all_list[k].pop(1)
                                     all_list[k].insert(1,torch.tensor(-999))
-                    
-                    
+
+
                     #print('layer7 pruned percentage = ', pruned_subarray/len(rram_partition_total_sum))
                     total_pruned_cell += pruned_subarray*SubarrayRow*SubarrayCol
-           
-           
+
+
                 if name == 'module.classifier.2.weight':
                     #print('layer8 prune_ratio = ', chromosome[7])
                     #ratio = chromosome[7]/100
@@ -3984,13 +3984,13 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                                     all_list[k].pop(1)
                                     all_list[k].insert(1,torch.tensor(-999))
 
-                   
+
                     #print('layer8 pruned percentage = ', pruned_subarray/len(rram_partition_total_sum))
                     total_pruned_cell += pruned_subarray*SubarrayRow*SubarrayCol
 
                 param.data = w.reshape(param.data.shape)
 
-            ##### for vgg11 ###    
+            ##### for vgg11 ###
             if args.arch == 'vgg11':
                 ratio= int(args.prune_ratio)/100
                 if name == 'module.classifier.0.weight':
@@ -4003,14 +4003,14 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                         key,value = rram_partition_total_sum_list[i]
                         a = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                         w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(a.shape)
-                
+
                         for k in range(len(all_list)):
                             if all_list[k][2]=='module.classifier.0.weight':
                                 if all_list[k][0] == key:
                                     all_list[k].pop(1)
                                     all_list[k].insert(1,torch.tensor(-999))
-                
-                
+
+
                     print('layer7 pruned percentage = ', pruned_subarray/len(rram_partition_total_sum))
                     total_pruned_cell += pruned_subarray*SubarrayRow*SubarrayCol
                 if name == 'module.classifier.2.weight':
@@ -4022,7 +4022,7 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                         key,value = rram_partition_total_sum_list[i]
                         a = w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                         w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(a.shape)
-                
+
                         for k in range(len(all_list)):
                             if all_list[k][2]=='module.classifier.2.weight':
                                 if all_list[k][0] == key:
@@ -4134,7 +4134,7 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
                                     all_list[k].insert(1,torch.tensor(-999))
 
                     print(name, ' pruned percentage = ', pruned_subarray/len(rram_partition_total_sum))
-              
+
                 param.data = w.reshape(param.data.shape)
 
 
@@ -4149,7 +4149,7 @@ def prune_layer(_model, args, prune_ratio_list): ### for prune_layer only
     #print('total_subarray_cell = ', total_subarray_cell)
     #print('total_pruned percentage = ', total_pruned_cell/total_subarray_cell)
 
-    #print('all list after sorted = ', all_list_sorted)   
+    #print('all list after sorted = ', all_list_sorted)
 
     total_prune_ratio = total_pruned_cell/total_subarray_cell
     return  total_prune_ratio
@@ -4191,7 +4191,7 @@ def downgrading(model, args): ## this function assume one 8bit weight are mapped
                 for j in range(numRow):
                     rram_partition[i,j] = w[i*SubarrayCol:(i+1)*SubarrayCol, j*SubarrayRow:(j+1)*SubarrayRow]
                     rram_partition_total_sum[i,j] = torch.sum(torch.abs(rram_partition[i,j]))
-            
+
             for key, value in rram_partition_total_sum.items():
                 tmp = [key,value]
                 rram_partition_total_sum_list.append(tmp)
@@ -4305,7 +4305,7 @@ def downgrading_8bit(model, args, sector, idx): ### this function assume a weigh
                 for j in range(numRow):
                     rram_partition[i,j] = w[i*SubarrayCol:(i+1)*SubarrayCol, j*SubarrayRow:(j+1)*SubarrayRow]
                     rram_partition_total_sum[i,j] = torch.sum(torch.abs(rram_partition[i,j]))
-            
+
             for key, value in rram_partition_total_sum.items():
                 tmp = [key,value]
                 rram_partition_total_sum_list.append(tmp)
@@ -4400,7 +4400,7 @@ def downgrading_8bit(model, args, sector, idx): ### this function assume a weigh
 
 
 def placement(model,args):
-  
+
 
     print('================  place from corner ==================')
     x=1
@@ -4409,7 +4409,7 @@ def placement(model,args):
     sector = []
     tmp = [(0,0)]
     sector.append(tmp)
-    while z<=53: 
+    while z<=53:
         if (x==z)and(y<z) :
             tmp = [(x,y)]
             sector.append(tmp)
@@ -4433,8 +4433,8 @@ def placement(model,args):
 
 
     print('================== start placement in shan shape =================')
-    
-    
+
+
     print('======================== place subarrays of all layer===========================')
 
     ######### heat map, subarray placed  start from top left ############
@@ -4451,11 +4451,11 @@ def placement(model,args):
                 k_limit = k_limit + 55
             else :
                 heatmap.append(words[k])
-        
+
         print('map weight to subarray from top left')
         for i in range(len(sector)):
             idx = sector[i][0]
-            heat_idx = 54*idx[1] + idx[0] 
+            heat_idx = 54*idx[1] + idx[0]
             sector[i].append(heatmap[heat_idx])
         print(sector)
     #######################################################################
@@ -4540,7 +4540,7 @@ def placement(model,args):
             sector[i].append(heatmap[heat_idx])
     #######################################################################
 
-    
+
     realmin=1000
     realmax=-9999
     for name, param in (model.named_parameters()):
@@ -4590,7 +4590,7 @@ def placement(model,args):
                 for j in range(numRow):
                     rram_partition[i,j] = w[i*SubarrayCol:(i+1)*SubarrayCol, j*SubarrayRow:(j+1)*SubarrayRow]
                     rram_partition_total_sum[i,j] = torch.sum(torch.abs(rram_partition[i,j]))
-                    
+
                     G_map = torch.zeros(int(rram_partition[i,j].shape[0]*numColPerSynapse),int(rram_partition[i,j].shape[1]))
                     for k in range(rram_partition[i,j].shape[0]):
                         newdata = (((NormalizedMax-NormalizedMin)/(RealMax-RealMin))*(rram_partition[i,j][k]-RealMax) + NormalizedMax).round()
@@ -4600,11 +4600,11 @@ def placement(model,args):
                             reminder = torch.ceil(value%cellrange)
                             value = torch.floor(value/cellrange)
                             G_map[(numColPerSynapse)*k+m] =reminder
-                    
+
                     #G_initial = torch.ones(G_map.shape) * 3.07 ## conductance range 3.07nS ~ 38.4nS
                     #G_level = G_map * 2.3553 ## each level is 2.3553nS = (38.4-3.07)/15
                     #G_value = G_initial + G_level
-                    
+
                     G_initial = torch.ones(G_map.shape) * 100 ## conductance range 100nS ~ 5000nS
                     G_level = G_map * 326.66 ## each level is 16333.3 = (5000-100)/15
                     G_value = G_initial + G_level
@@ -4616,16 +4616,16 @@ def placement(model,args):
                         G_value1 = torch.sum(G_value[0:param.data.shape[0], 0:128])
                         G_value2 = torch.sum(G_value[param.data.shape[0]:param.data.shape[0]*numColPerSynapse, 0:128])
 
-                    
+
                     key = (i,j)
                     value = rram_partition_total_sum[i,j]
                     tmp = [key, value, name, G_value1, G_value2 ]
                     rram_partition_total_sum_list.append(tmp)
-            
+
 
             rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1])
             #rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1], reverse = True)
-                
+
 
             subarray_list.append(rram_partition_total_sum_list)
             each_layer_len.append(len(rram_partition_total_sum_list))
@@ -4648,7 +4648,7 @@ def placement(model,args):
                 for j in range(numRow):
                     rram_partition[i,j] = w[i*SubarrayCol:(i+1)*SubarrayCol, j*SubarrayRow:(j+1)*SubarrayRow]
                     rram_partition_total_sum[i,j] = torch.sum(torch.abs(rram_partition[i,j]))
-                    
+
                     G_map = torch.zeros(int(rram_partition[i,j].shape[0]*numColPerSynapse),int(rram_partition[i,j].shape[1]))
                     for k in range(rram_partition[i,j].shape[0]):
                         newdata = (((NormalizedMax-NormalizedMin)/(RealMax-RealMin))*(rram_partition[i,j][k]-RealMax) + NormalizedMax).round()
@@ -4662,7 +4662,7 @@ def placement(model,args):
                     #G_initial = torch.ones(G_map.shape) * 3.07 ## conductance range 3.07nS ~ 38.4nS
                     #G_level = G_map * 2.3553 ## each level is 2.3553nS = (38.4-3.07)/15
                     #G_value = G_initial + G_level
-                    
+
                     G_initial = torch.ones(G_map.shape) * 100 ## conductance range 100nS ~ 5000nS
                     G_level = G_map * 326.66 ## each level is 326.66 = (5000-100)/15
                     G_value = G_initial + G_level
@@ -4682,15 +4682,15 @@ def placement(model,args):
 
             rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1])
             #rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1],reverse=True)
-            
+
             subarray_list.append(rram_partition_total_sum_list)
 
             each_layer_len.append(len(rram_partition_total_sum_list))
 
-    
+
 
     ##### sector_format [sector_key, sector_heat_value, subarray_key, subarray_value, subarray_layer, first_4bit_sub_Glevel, second_4bit_sub_Glevel, first or second 4bit sub]
-    
+
     if args.tile_pairing==0:
     ############ place subarray in sector with my method ################################
         redundant_heatlist=[]
@@ -4732,7 +4732,7 @@ def placement(model,args):
                 sector[i].append(tmplist[i][3])
                 sector[i].append(tmplist[i][4])
                 idx=idx+1
- 
+
     else:
     ############ place subarray in sector using tile pairing ##########################
         tmplist=[]
@@ -4791,7 +4791,7 @@ def placement(model,args):
     #
     #print('conv layer total_heat in this floorplan = ', total_heat)
 
-    
+
     return sector, len(tmplist), redundant_heatlist, idx
 
 
@@ -4806,7 +4806,7 @@ def weight_sensitivity(_model, args):
                 realmin = torch.min(param.data)
             if torch.max(param.data) > realmax:
                 realmax = torch.max(param.data)
-    
+
     print('realmin = ', realmin)
     print('realmax = ', realmax)
     SynapseBit = args.testbit
@@ -4841,7 +4841,7 @@ def weight_sensitivity(_model, args):
             rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1])
 
 
-            
+
             if args.arch == 'vgg11':
                 ratio= int(args.affect_ratio)/100
                 #if name == 'module.features.module.3.weight':
@@ -5008,7 +5008,7 @@ def weight_sensitivity(_model, args):
                 #            tmp_w[j]=resumedata
                 #    w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w
                 #    print('layer9 pruned percentage = ', affected_subarray/len(rram_partition_total_sum))
-                
+
                 #if name == 'module.classifier.2.weight':
                 #    #ratio = 0.6
                 #    affected_subarray = math.ceil(len(rram_partition_total_sum) * ratio)
@@ -5097,7 +5097,7 @@ def model_acc_under_thermal_impact(_model, args):
 
 
     print('in new function~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-    
+
     for name, param in (_model.named_parameters()):
         if len(param.data.size()) == 4 :
             print('name=',name)
@@ -5119,7 +5119,7 @@ def model_acc_under_thermal_impact(_model, args):
                     for k in range(rram_partition[i,j].shape[0]):
                         #_max = realmax
                         _max = torch.max(rram_partition[i,j][k])
-                        #_min = realmin 
+                        #_min = realmin
                         _min = torch.min(rram_partition[i,j][k])
                         h_impact = (_max-_min)*(((2**CellBit)-1-heat)/(2**CellBit-1))
                         new_tmp = (rram_partition[i,j][k]>(h_impact+_min)).float()*(h_impact+_min) + (rram_partition[i,j][k]<=(h_impact+_min)).float()*rram_partition[i,j][k]
@@ -5144,7 +5144,7 @@ def model_acc_under_thermal_impact(_model, args):
                     #heat = heat_value/16 * 2**CellBit
                     heat = heat_value/32 * 2**CellBit
                     #heat = heat_value
-                    
+
                     for k in range(rram_partition[i,j].shape[0]):
                         #_max = realmax
                         _max = torch.max(rram_partition[i,j][k])
@@ -5157,7 +5157,7 @@ def model_acc_under_thermal_impact(_model, args):
 
                     w[i*SubarrayCol:(i+1)*SubarrayCol, j*SubarrayRow:(j+1)*SubarrayRow] = rram_partition[i,j]
             param.data = w.reshape(param.data.shape)
-   
+
 
 
 
@@ -5183,7 +5183,7 @@ def remapping_thermal(_model, sector, args, len_tmp_list, redundant_heatlist, id
     RealMax = realmax
     SubarrayRow = 128
     SubarrayCol = 128
-    
+
 
     print('idx=', idx)
 
@@ -5312,7 +5312,7 @@ def tile_pairing(_model, sector, args, len_tmp_list, redundant_heatlist, idx): #
                 rram_partition_total_sum_list.append(tmp)
 
             rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1])
-           
+
 
             ## 測試一個5bit weight到5bit cellresolution受熱影響準確率多少 5只是舉例
             ## 測試把weight map到subarray受熱影響，注意這是有redundant tile的版本
@@ -5334,7 +5334,7 @@ def tile_pairing(_model, sector, args, len_tmp_list, redundant_heatlist, idx): #
                         tmp_w[j]=resumedata
                     w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w
             param.data = w.reshape(param.data.shape)
-           
+
 
             #paired_key= []
             #for i in range(len(redundant_heatlist)):
@@ -5362,7 +5362,7 @@ def tile_pairing(_model, sector, args, len_tmp_list, redundant_heatlist, idx): #
             #                        tmp_w[k]=resume1
             #                        tmp_w[k+1]=resume2
 
-            #                    w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w 
+            #                    w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w
             #skip=0
             #for i in range(idx):
             #    print('idx = ', i)
@@ -5374,7 +5374,7 @@ def tile_pairing(_model, sector, args, len_tmp_list, redundant_heatlist, idx): #
             #        for x in range(len(paired_key)):
             #            if key == paired_key[x]:
             #                skip = 1
-            #        
+            #
             #        if skip==0:
             #            if int(sector[i][1])==5 or int(sector[i][1])==6 or int(sector[i][1]) == 4 :
             #                print('bitwidth downgrading')
@@ -5423,7 +5423,7 @@ def tile_pairing(_model, sector, args, len_tmp_list, redundant_heatlist, idx): #
                 rram_partition_total_sum_list.append(tmp)
 
             rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1])
-                
+
             for i in range(idx):
                 if sector[i][4] == name:
                     key = sector[i][2]
@@ -5436,8 +5436,8 @@ def tile_pairing(_model, sector, args, len_tmp_list, redundant_heatlist, idx): #
                         tmp_w[j]=resumedata
                     w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w
             param.data = w.reshape(param.data.shape)
-            
-            
+
+
             #paired_key= []
             #for i in range(len(redundant_heatlist)):
             #    if redundant_heatlist[i][2] == name:
@@ -5559,14 +5559,14 @@ def split_after_prune(_model, sector, args):
                 rram_partition_total_sum_list.append(tmp)
 
             rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1], reverse = True)
-            
+
             #print('sector len = ', len(sector))
             #print('len of rram parititon totalt sum list = ', len(rram_partition_total_sum_list))
             ratio = int(args.prune_ratio)/100
             print('ratio=',ratio)
             #split_num = math.floor(len(rram_partition_total_sum_list) * ratio)
             #t_len = math.floor(len(rram_partition_total_sum_list)* (1-ratio))
-            
+
             split_num=0
             t_len=0
             ratio_bigger_than50 = 0
@@ -5587,8 +5587,8 @@ def split_after_prune(_model, sector, args):
                 print('rram_partition_total sum list long = ', len(rram_partition_total_sum_list))
                 print('tlen = ', t_len)
 
-            
-            
+
+
             for i in range(split_num):
                 print('i=',i)
                 key = rram_partition_total_sum_list[i][0]
@@ -5608,7 +5608,7 @@ def split_after_prune(_model, sector, args):
                             rram_map2_sml = (reminder<=cell_limit).float()*0
                             rram_map[(numColPerSynapse)*(j*2)+k] = rram_map1_big + rram_map1_sml
                             rram_map[(numColPerSynapse)*(j*2)+(k+1)] = rram_map2_big + rram_map2_sml
-                        
+
                     for p in range(1,5,1):
                         print('p=',p)
                         sector[place_idx][2]=key
@@ -5656,7 +5656,7 @@ def split_after_prune(_model, sector, args):
                                 reminder = torch.ceil(value%cellrange)
                                 value = torch.floor(value/cellrange)
                                 rram_map[(numColPerSynapse)*j+k] = reminder
-                        
+
                         sector[place_idx][2]=key
                         sector[place_idx][3]=torch.sum(torch.abs(rram_map[0:128, 0:128]))
                         sector[place_idx][4]=name
@@ -5688,7 +5688,7 @@ def split_after_prune(_model, sector, args):
                         print('sector[{}]={}'.format(place_idx, sector[place_idx]))
                         place_idx=place_idx+1
 
-       
+
 
         if len(param.data.size()) == 2 :
             print('name=',name)
@@ -5709,14 +5709,14 @@ def split_after_prune(_model, sector, args):
                 rram_partition_total_sum_list.append(tmp)
 
             rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1], reverse = True)
-    
+
             #print('sector len = ', len(sector))
             #print('len of rram parititon totalt sum list = ', len(rram_partition_total_sum_list))
             ratio = int(args.prune_ratio)/100
             print('ratio=',ratio)
             #split_num = math.floor(len(rram_partition_total_sum_list) * ratio)
             #t_len = math.floor(len(rram_partition_total_sum_list)* (1-ratio))
-            
+
             split_num=0
             t_len=0
             ratio_bigger_than50 = 0
@@ -5739,8 +5739,8 @@ def split_after_prune(_model, sector, args):
                 print('rram_partition_total sum list long = ', len(rram_partition_total_sum_list))
                 print('tlen = ', t_len)
 
-                
-            
+
+
             for i in range(split_num):
                 print('i=',i)
                 key = rram_partition_total_sum_list[i][0]
@@ -5793,7 +5793,7 @@ def split_after_prune(_model, sector, args):
                         print('sector[{}]={}'.format(place_idx, sector[place_idx]))
                         place_idx = place_idx + 1
 
-            
+
             if ratio_bigger_than50 == 0:
                 if args.experiment==0:
                     for i in range(split_num, t_len , 1):
@@ -5844,12 +5844,12 @@ def split_after_prune(_model, sector, args):
 
 
         #print('sector long = ', len(sector))
-            
+
     print(sector)
 
     return sector, place_idx
 
-                
+
 
 
 def thermal_after_split(_model, sector, args, len_tmp_list, place_idx):
@@ -5866,7 +5866,7 @@ def thermal_after_split(_model, sector, args, len_tmp_list, place_idx):
     print('realmin = ', realmin)
     print('realmax = ', realmax)
     CellBit = int(args.testbit)
-    SynapseBit = CellBit 
+    SynapseBit = CellBit
     numRowPerSynapse = 1
     numColPerSynapse = int(SynapseBit/CellBit)
     NormalizedMin = 0
@@ -5891,7 +5891,7 @@ def thermal_after_split(_model, sector, args, len_tmp_list, place_idx):
                 row = param.data.shape[1]*param.data.shape[2]*param.data.shape[3]
             if len(param.data.size())==2:
                 row = param.data.shape[1]
-            
+
             w = param.data.reshape(param.data.shape[0],row)
             numRow = math.ceil(row/SubarrayRow)
             numCol = math.ceil(param.data.shape[0]/SubarrayCol)
@@ -5908,15 +5908,15 @@ def thermal_after_split(_model, sector, args, len_tmp_list, place_idx):
 
             rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1], reverse = True)
 
-    
+
             print('rram_partition_total_sum list long is =', len(rram_partition_total_sum_list))
             print('len tmp list = ', len_tmp_list)
-            
+
             #while index < len(rram_partition_total_sum_list):
             while index < place_idx:
                 print('index=',index)
                 print('sector{}={}'.format(index,sector[index]))
-                
+
                 if args.experiment == 0:
                     if sector[index][4]==name:
                         _slice = sector[index][7]
@@ -5951,9 +5951,9 @@ def thermal_after_split(_model, sector, args, len_tmp_list, place_idx):
                             index = index + 2
                         else:
                             index = index + 4
-                        
+
                     else:
-                
+
                         index=index+1
                 else:
                     if sector[index][4]==name:
@@ -5972,7 +5972,7 @@ def thermal_after_split(_model, sector, args, len_tmp_list, place_idx):
                                 _min = torch.min(tmp_w[j])
                                 h_impact = (_max-_min)*(((2**CellBit)-1-heat_value)/(2**CellBit-1))
                                 new_tmp_pos = (tmp_w[j]>(h_impact+_min)).float()*(h_impact+_min) + (tmp_w[j]<=(h_impact+_min)).float()*tmp_w[j]
-                                tmp_w[j]=new_tmp_pos 
+                                tmp_w[j]=new_tmp_pos
 
                             w[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = tmp_w
                             index = index + 1
@@ -5983,7 +5983,7 @@ def thermal_after_split(_model, sector, args, len_tmp_list, place_idx):
 
 
 
-        
+
 
 
 def quantize(_model, width, _mode = None, _method_args = None, _shifting = None, _non_uniform = None, _var = 5): # _method_args = base
@@ -5996,21 +5996,21 @@ def quantize(_model, width, _mode = None, _method_args = None, _shifting = None,
     _method_args - the parameters using for method-assigned quantization
     shifting     - if there is resistance shifting, it would be the value of variation
     '''
-    
-    original_weight = {} 
+
+    original_weight = {}
     weight_quantized = []
     # print ('Quantization error:')
     for (ind, p) in enumerate(_model.parameters()):
         if len(p.data.size()) != 1:
             w = p.data
-                        
+
             # mask = (w != 0).float()
             w_pos = (w>0).float()*w
             w_neg = (w<0).float()*w*(-1)
 
             if (_mode == 'linear'):
                 # get the quantization step
-            
+
                 start = w_pos.min()
                 end = w_pos.max()
                 q_step = (end-start)/(2**width-1)
@@ -6024,14 +6024,14 @@ def quantize(_model, width, _mode = None, _method_args = None, _shifting = None,
 ###                    variation = np.random.normal(0, w_pos.cpu().numpy()/_var, w_pos.shape)
 ###                    w_pos -= torch.FloatTensor(variation).abs().cuda()
 ###                    if _non_uniform:
-###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_pos.shape) 
+###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_pos.shape)
 ###                        non_uniform = torch.FloatTensor(non_uniform).cuda()
 ###                        w_pos = w_pos * non_uniform
 ###                    else:
 ###                        w_pos = w_pos * _shifting
 
                 start = w_neg.min()
-                
+
                 q_step = (end-start)/(2**width-1)
                 w_neg = ((w_neg - start)/q_step).round()*q_step + start
 
@@ -6040,7 +6040,7 @@ def quantize(_model, width, _mode = None, _method_args = None, _shifting = None,
 ##                    variation = np.random.normal(0, w_neg.cpu().numpy()/_var, w_neg.shape)
 ##                    w_neg -= torch.FloatTensor(variation).abs().cuda()
 ###                    if _non_uniform:
-###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_neg.shape) 
+###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_neg.shape)
 ###                        non_uniform = torch.FloatTensor(non_uniform).cuda()
 ###                        w_neg = w_neg * non_uniform
 ###                    else:
@@ -6053,9 +6053,9 @@ def quantize(_model, width, _mode = None, _method_args = None, _shifting = None,
                 assert (_method_args is not None)
                 base = _method_args # get the base
                 shape = w_pos.shape
-                
+
                 # for positive part
-                end = w_pos.max()  
+                end = w_pos.max()
                 scale = (end/(base**(2**width - 1))).cuda()                # get the largest value and scale  this,scale is a potion , and every conductance multiply this portion. it will be a according we
                 step = (base**(torch.Tensor(range(2**width)))*scale).cuda()   # calc quantization intervals
 
@@ -6080,16 +6080,16 @@ def quantize(_model, width, _mode = None, _method_args = None, _shifting = None,
 ####                    variation = np.random.normal(0, w_pos_new.cpu().numpy()/_var, w_pos_new.shape)
 ####                    w_pos_new -= torch.FloatTensor(variation).abs().cuda()
 ###                    if _non_uniform:
-###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_pos_new.shape) 
+###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_pos_new.shape)
 ###                        non_uniform = torch.FloatTensor(non_uniform).cuda()
 ###                        w_pos_new = w_pos_new * non_uniform
 ###                    else:
 ###                        w_pos_new = w_pos_new * _shifting
-                        
-                
+
+
 
                 # for negative part
-                end = w_neg.max()  
+                end = w_neg.max()
                 scale = (end/(base**(2**width - 1))).cuda()           # get the largest value and scale
                 step = (base**(torch.Tensor(range(2**width)))*scale).cuda()  # calc quantization intervals
 #                assert (end == step[2**width - 1])
@@ -6111,7 +6111,7 @@ def quantize(_model, width, _mode = None, _method_args = None, _shifting = None,
 ####                    variation = np.random.normal(0, w_neg_new.cpu().numpy()/_var, w_neg_new.shape)
 ####                    w_neg_new -= torch.FloatTensor(variation).abs().cuda()
 ###                    if _non_uniform:
-###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_neg_new.shape) 
+###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_neg_new.shape)
 ###                        non_uniform = torch.FloatTensor(non_uniform).cuda()
 ###                        w_neg_new = w_neg_new * non_uniform
 ###                    else:
@@ -6125,7 +6125,7 @@ def quantize(_model, width, _mode = None, _method_args = None, _shifting = None,
                 assert (_method_args is not None)
                 expo = _method_args # get the expo
                 shape = w_pos.shape
-                
+
                 # for positive part
                 end = w_pos.max()
                 scale = (end/((2**width)**expo)).cuda()                       # get the largest value and scale
@@ -6148,14 +6148,14 @@ def quantize(_model, width, _mode = None, _method_args = None, _shifting = None,
                 original_weight[ind] += w_pos_new
 ###                if _shifting:
 ###                    if _non_uniform:
-###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_pos_new.shape) 
+###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_pos_new.shape)
 ###                        non_uniform = torch.FloatTensor(non_uniform).cuda()
 ###                        w_pos_new = w_pos_new * non_uniform
 ###                    else:
 ###                        w_pos_new = w_pos_new * _shifting
 
                 # for negative part
-                end = w_neg.max()  
+                end = w_neg.max()
                 scale = (end/((2**width)**expo)).cuda()           # get the largest value and scale
                 step = ((torch.Tensor(range(1, 2**width + 1)))**expo*scale).cuda()  # calc quantization intervals
 #                assert (end == step[2**width - 1])
@@ -6175,7 +6175,7 @@ def quantize(_model, width, _mode = None, _method_args = None, _shifting = None,
                 original_weight[ind] += (-1)*w_neg_new
 ###                if _shifting:
 ###                    if _non_uniform:
-###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_neg_new.shape) 
+###                        non_uniform = np.random.normal(loc=_shifting, scale=0.1, size=w_neg_new.shape)
 ###                        non_uniform = torch.FloatTensor(non_uniform).cuda()
 ###                        w_neg_new = w_neg_new * non_uniform
 ###                    else:
@@ -6209,10 +6209,10 @@ def SaveWeights(_original_weight, _gradient_sum, _model):
             abs_gradient_sum = _gradient_sum[ind].abs()
             top_k, index = torch.topk(abs_gradient_sum, N)
 
-            shape = p.data.shape  
+            shape = p.data.shape
             p.data = p.data.view(-1)
             p.data[index] = _original_weight[ind].view(-1)[index]
-            p.data = p.data.view(shape) 
+            p.data = p.data.view(shape)
     print("Total:", total)
     print("Total_p:", total_p)
     print("Saving percentage: %.2f %%" % (100*float(total)/total_p))
@@ -6222,7 +6222,7 @@ def SaveWeights(_original_weight, _gradient_sum, _model):
 def RowRestoring_Weights(_original_weight, _model, _rate):
     ratio = _rate
     row = 128
-    col = 128 
+    col = 128
     total = 0
     total_p = 0
 
@@ -6230,7 +6230,7 @@ def RowRestoring_Weights(_original_weight, _model, _rate):
         if len(p.data.size()) != 1:
             ###print(_gradient_sum[ind].shape)
             ###print(_gradient_sum[ind].view(-1).shape[0])
-            
+
             total_p += p.data.view(-1).shape[0]
             shape = p.data.shape
             w = p.data.view(shape[0], -1)
@@ -6248,20 +6248,20 @@ def RowRestoring_Weights(_original_weight, _model, _rate):
             rram_neg = {}
             rram_pos_sum_row = {}
             rram_neg_sum_row = {}
-        
+
             for i in range(NumRow):
                 for j in range(NumCol):
-                    rram_pos[i,j] = w_pos[i*row:(i+1)*row, j*col:(j+1)*col] 
-                    rram_neg[i,j] = w_neg[i*row:(i+1)*row, j*col:(j+1)*col] 
-                    rram_pos_sum_row[i,j] = torch.sum(rram_pos[i,j], dim=1) 
-                    rram_neg_sum_row[i,j] = torch.sum(rram_neg[i,j], dim=1) 
+                    rram_pos[i,j] = w_pos[i*row:(i+1)*row, j*col:(j+1)*col]
+                    rram_neg[i,j] = w_neg[i*row:(i+1)*row, j*col:(j+1)*col]
+                    rram_pos_sum_row[i,j] = torch.sum(rram_pos[i,j], dim=1)
+                    rram_neg_sum_row[i,j] = torch.sum(rram_neg[i,j], dim=1)
                     size = math.ceil(rram_pos_sum_row[i,j].shape[0] * ratio)
                     top_k_pos, index_pos = torch.topk(rram_pos_sum_row[i,j], size)
                     top_k_neg, index_neg = torch.topk(rram_neg_sum_row[i,j], size)
-                    w_pos[i*row+index_pos, j*col:(j+1)*col] = ori_w_pos[i*row+index_pos, j*col:(j+1)*col] 
-                    w_neg[i*row+index_neg, j*col:(j+1)*col] = ori_w_neg[i*row+index_neg, j*col:(j+1)*col] 
+                    w_pos[i*row+index_pos, j*col:(j+1)*col] = ori_w_pos[i*row+index_pos, j*col:(j+1)*col]
+                    w_neg[i*row+index_neg, j*col:(j+1)*col] = ori_w_neg[i*row+index_neg, j*col:(j+1)*col]
                     total += rram_pos[i,j].shape[1] * size
-                        
+
             w = (w_pos + (-1)*w_neg)
             w = w.view(shape)
             p.data = w
@@ -6283,7 +6283,7 @@ def RowRestoring_Gradients(_original_weight, _gradient_sum, _model, _rate):
         if len(p.data.size()) != 1:
             ###print(_gradient_sum[ind].shape)
             ###print(_gradient_sum[ind].view(-1).shape[0])
-            
+
             total_p += p.data.view(-1).shape[0]
             shape = p.data.shape
             w = p.data.view(shape[0], -1)
@@ -6293,7 +6293,7 @@ def RowRestoring_Gradients(_original_weight, _gradient_sum, _model, _rate):
             w_neg = (w<0).float()*w
             ori_w_pos = (w>0).float() * _original_weight[ind]
             ori_w_neg = (w<0).float() * _original_weight[ind]
-            g_pos = ((w>0).float() * _gradient_sum[ind]).abs() 
+            g_pos = ((w>0).float() * _gradient_sum[ind]).abs()
             g_neg = ((w<0).float() * _gradient_sum[ind]).abs()
 
             grad_row_size = _gradient_sum[ind].shape[0]
@@ -6304,18 +6304,18 @@ def RowRestoring_Gradients(_original_weight, _gradient_sum, _model, _rate):
             rram_neg = {}
             rram_pos_sum_row = {}
             rram_neg_sum_row = {}
-        
+
             for i in range(NumRow):
                 for j in range(NumCol):
-                    rram_pos[i,j] = g_pos[i*row:(i+1)*row, j*col:(j+1)*col] 
-                    rram_neg[i,j] = g_neg[i*row:(i+1)*row, j*col:(j+1)*col] 
-                    rram_pos_sum_row[i,j] = torch.sum(rram_pos[i,j], dim=1) 
-                    rram_neg_sum_row[i,j] = torch.sum(rram_neg[i,j], dim=1) 
+                    rram_pos[i,j] = g_pos[i*row:(i+1)*row, j*col:(j+1)*col]
+                    rram_neg[i,j] = g_neg[i*row:(i+1)*row, j*col:(j+1)*col]
+                    rram_pos_sum_row[i,j] = torch.sum(rram_pos[i,j], dim=1)
+                    rram_neg_sum_row[i,j] = torch.sum(rram_neg[i,j], dim=1)
                     size = math.ceil(rram_pos_sum_row[i,j].shape[0] * ratio)
                     top_k_pos, index_pos = torch.topk(rram_pos_sum_row[i,j], size)
                     top_k_neg, index_neg = torch.topk(rram_neg_sum_row[i,j], size)
-                    w_pos[i*row+index_pos, j*col:(j+1)*col] = ori_w_pos[i*row+index_pos, j*col:(j+1)*col] 
-                    w_neg[i*row+index_neg, j*col:(j+1)*col] = ori_w_neg[i*row+index_neg, j*col:(j+1)*col] 
+                    w_pos[i*row+index_pos, j*col:(j+1)*col] = ori_w_pos[i*row+index_pos, j*col:(j+1)*col]
+                    w_neg[i*row+index_neg, j*col:(j+1)*col] = ori_w_neg[i*row+index_neg, j*col:(j+1)*col]
                     total += rram_pos[i,j].shape[1] * size
 
             w = w_pos + w_neg
@@ -6328,12 +6328,12 @@ def RowRestoring_Gradients(_original_weight, _gradient_sum, _model, _rate):
 
 
 
-#def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, non_uniform, var, args, prune_ratio_layer): ## for prune layer only 
-def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, non_uniform, var, args): ## for prune layer only 
+#def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, non_uniform, var, args, prune_ratio_layer): ## for prune layer only
+def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, non_uniform, var, args): ## for prune layer only
 #def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, non_uniform, var, args): ## original train
-    
+
     model.train()
-    
+
     correct = 0
     total = 0
 
@@ -6370,7 +6370,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                         for j in range(numRow):
                             rram_partition[i,j] = w[i*SubarrayCol:(i+1)*SubarrayCol, j*SubarrayRow:(j+1)*SubarrayRow]
                             rram_partition_total_sum[i,j] = torch.sum(torch.abs(rram_partition[i,j]))
-                    
+
                     for key, value in rram_partition_total_sum.items():
                         tmp = [key,value]
                         rram_partition_total_sum_list.append(tmp)
@@ -6387,7 +6387,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                             for i in range(pruned_subarray):
                                 key,value = rram_partition_total_sum_list[i]
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(128,128)
-                        
+
                         if name  == 'features.module.5.weight':
                             ratio = prune_ratio_layer[2]
                             #ratio = 0.2
@@ -6395,7 +6395,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                             for i in range(pruned_subarray):
                                 key,value = rram_partition_total_sum_list[i]
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(128,128)
-                        
+
                         if name  == 'features.module.7.weight':
                             ratio = prune_ratio_layer[3]
                             #ratio = 0.4
@@ -6403,7 +6403,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                             for i in range(pruned_subarray):
                                 key,value = rram_partition_total_sum_list[i]
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(128,128)
-                        
+
                         if name  == 'features.module.10.weight':
                             ratio = prune_ratio_layer[4]
                             #ratio = 0.3
@@ -6411,7 +6411,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                             for i in range(pruned_subarray):
                                 key,value = rram_partition_total_sum_list[i]
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(128,128)
-                        
+
                         if name  == 'features.module.12.weight':
                             ratio = prune_ratio_layer[5]
                             #ratio = 0.3
@@ -6419,9 +6419,9 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                             for i in range(pruned_subarray):
                                 key,value = rram_partition_total_sum_list[i]
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(128,128)
-                        
+
                         param.grad = g.reshape(param.grad.shape)
-                  
+
 
 
                     if args.arch == 'vgg11':
@@ -6433,7 +6433,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                                 key,value = rram_partition_total_sum_list[i]
                                 a=g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(a.shape)
-                        
+
                         if name  == 'mmodule.features.module.6.weight':
                             #ratio = 0.4
                             pruned_subarray = math.ceil(len(rram_partition_total_sum) * ratio)
@@ -6441,7 +6441,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                                 key,value = rram_partition_total_sum_list[i]
                                 a=g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(a.shape)
-                        
+
                         if name  == 'module.features.module.8.weight':
                             #ratio = 0.4
                             pruned_subarray = math.ceil(len(rram_partition_total_sum) * ratio)
@@ -6480,7 +6480,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(a.shape)
 
                         param.grad = g.reshape(param.grad.shape)
-                   
+
                     if args.arch == 'alexnet':
                         ratio = int(args.prune_ratio)/100
                         if name  == 'module.features.3.weight':
@@ -6512,7 +6512,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                                 a=g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow]
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(a.shape)
                         param.grad = g.reshape(param.grad.shape)
-                
+
                     if args.arch == 'resnet34':
                         ratio = int(args.prune_ratio)/100
                         if name == 'module.layer1.0.conv1.weight' or name =='module.layer1.1.conv1.weight' or name == 'module.layer1.2.conv1.weight' or name =='module.layer2.0.conv1.weight' or name =='module.layer2.1.conv1.weight' or name == 'module.layer2.2.conv1.weight' or name == 'module.layer2.3.conv1.weight' or name == 'module.layer3.0.conv1.weight' or name == 'module.layer3.0.shortcut.0.weight' or name == 'module.layer3.1.conv1.weight' or name == 'module.layer3.2.conv1.weight' or name == 'module.layer3.3.conv1.weight' or name == 'module.layer3.4.conv1.weight' or name == 'module.layer3.5.conv1.weight' or name == 'module.layer4.0.conv1.weight' or name == 'module.layer4.0.shortcut.0.weight' or name == 'module.layer4.1.conv1.weight' or name == 'module.layer4.2.conv1.weight' :
@@ -6527,7 +6527,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
 
 
 
-                    
+
                 if len(param.data.size()) == 2:
                     row = param.data.shape[1]
                     numRow = math.ceil(row/128)
@@ -6549,7 +6549,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                         rram_partition_total_sum_list.append(tmp)
 
                     rram_partition_total_sum_list = sorted(rram_partition_total_sum_list, key = lambda s:s[1])
-                    
+
                     ####vgg8#######
                     if args.arch =='vgg8':
                         #ratio = int(args.prune_ratio)/100
@@ -6560,7 +6560,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                             for i in range(pruned_subarray):
                                 key,value = rram_partition_total_sum_list[i]
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(128,128)
-                        
+
                         if name  == 'classifier.2.weight':
                             ratio = prune_ratio_layer[7]
                             #ratio = 0
@@ -6569,7 +6569,7 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                                 key,value = rram_partition_total_sum_list[i]
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(10,128)
                         param.grad = g.reshape(param.grad.shape)
-                    ##### vgg11 ### 
+                    ##### vgg11 ###
                     if args.arch == 'vgg11' :
                         ratio= int(args.prune_ratio)/100
                         if name  == 'module.classifier.0.weight':
@@ -6630,19 +6630,19 @@ def Train(trainloader, model, criterion, optimizer, epoch, qtz_opts, shifting, n
                                 g[key[0]*SubarrayCol:(key[0]+1)*SubarrayCol, key[1]*SubarrayRow:(key[1]+1)*SubarrayRow] = torch.zeros(a.shape)
                         param.grad = g.reshape(param.grad.shape)
 
-        
-        
+
+
         optimizer.step()
 
         _, pred = torch.max(output.data, 1)
         total += y.size(0)
         correct +=  (pred == y.data).sum().cpu()
-    
+
     print('(Epoch - %d) Accuracy on Trainset: %.2f %%' % (epoch, 100*float(correct)/total))
 
 #def Eval(testloader, model, epoch, qtz_opts, shifting, non_uniform):
 def Eval(testloader, model, criterion, optimizer, epoch, qtz_opts, shifting, non_uniform, rate, mode, var):
-    
+
     model.eval()
     correct = 0
     correct_new = 0
@@ -6657,12 +6657,12 @@ def Eval(testloader, model, criterion, optimizer, epoch, qtz_opts, shifting, non
             print('in eval-quantize-shifting')
             ##
             DynamicVariation(model, var)
-    
+
 
 
 
     for ind,(x, target) in enumerate(testloader):
-        
+
         x = Variable(x).cuda()
         target = Variable(target).cuda()
         output = model(x)
@@ -6678,18 +6678,18 @@ def Eval(testloader, model, criterion, optimizer, epoch, qtz_opts, shifting, non
 
 
 
-            for ind, p in enumerate(model.parameters()): 
+            for ind, p in enumerate(model.parameters()):
                 if len(p.data.size()) != 1:
                     grad = p.grad
                     if first_time:
                         gradient_sum[ind] = torch.zeros(grad.shape).cuda()
                     gradient_sum[ind] += grad
             first_time = False
-        
+
         _, pred = torch.max(output.data, 1)
         total += target.size(0)
         correct +=  (pred == target.data).sum().cpu()
-    
+
     if shifting:
         assert (mode == 'w' or mode == 'g')
         if mode == 'w':
@@ -6703,11 +6703,11 @@ def Eval(testloader, model, criterion, optimizer, epoch, qtz_opts, shifting, non
             x = Variable(x).cuda()
             target = Variable(target).cuda()
             output = model(x)
-            
+
             _, pred = torch.max(output.data, 1)
             total_new += target.size(0)
             correct_new +=  (pred == target.data).sum().cpu()
- 
+
     if epoch != -1:
         print('(Epoch - %d) Accuracy on Testset: %.2f %%' % (epoch, 100*float(correct)/total))
     else:
@@ -6715,6 +6715,6 @@ def Eval(testloader, model, criterion, optimizer, epoch, qtz_opts, shifting, non
         if shifting:
             print('Accuracy on Testset after saving: %.2f %%' % (100*float(correct_new)/total_new))
 
-   
+
     return (float(correct)/total)
 

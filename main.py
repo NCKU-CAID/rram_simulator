@@ -101,7 +101,7 @@ parser.add_argument('-e', '--evaluate', default=0, type=int,
                     help='evaluate model on validation set')
 parser.add_argument('--finetune', default=0, type=int,
                     help='finetune resume model')
-parser.add_argument('--gpu', default="0", type=str, 
+parser.add_argument('--gpu', default="0", type=str,
                     help='cuda set_device (default: 0)')
 parser.add_argument('--save-dir', default='saved_models', type=str,
                     help='direcotry to save best models')
@@ -111,9 +111,9 @@ parser.add_argument('-q', '--is-quantize', default=0, type=int,
 parser.add_argument('-m', '--quantize-mode', default='linear', type=str,
                     help='quantize mode')
 parser.add_argument('-w', '--quantize-width', default=8, type=int,
-                    help='quantize width') 
+                    help='quantize width')
 parser.add_argument('--base', default=2, type=float,
-                    help='quantize base')                
+                    help='quantize base')
 parser.add_argument('--shifting', default=0, type=float,
                     help='resistance drifting percentage. example:1.2')
 parser.add_argument('--non-uniform', default=0, type=int,
@@ -278,8 +278,8 @@ def case(arch):
         'resnet34' : ResNet34(),
         'resnet50' : ResNet50(),
         'mobilenet': models.mobilenet_v2(),
-        'lenet'    : LeNet(),     
-        'inputmap_vgg11_bn': VGG11_bn(), 
+        'lenet'    : LeNet(),
+        'inputmap_vgg11_bn': VGG11_bn(),
         'inputmap_vgg16_bn': VGG16_bn(),
         'inputmap_resnet18': ResNet18_inputmap(),
         'inputmap_resnet34': ResNet34_inputmap(),
@@ -315,7 +315,7 @@ def main():
         net = case(args.arch)
         net = torch.nn.DataParallel(net)
         print('========================================')
-    
+
     #net = VGG11_bias()
     net.cuda()#把網路架構丟到cuda
     print(net)
@@ -349,7 +349,7 @@ def main():
                                             normalize]))
 
     elif args.dataset == 'mnist':
-        trainset = torchvision.datasets.MNIST('../datasets/mnist', train=True, download = True, 
+        trainset = torchvision.datasets.MNIST('../datasets/mnist', train=True, download = True,
                                               transform=transforms.Compose([
                                               transforms.ToTensor(),
                                               transforms.Normalize((0.1307,), (0.3081,))
@@ -359,21 +359,21 @@ def main():
                                               transforms.ToTensor(),
                                               transforms.Normalize((0.1307,), (0.3081,))
                                              ]))
-                                            
+
     trainloader = torch.utils.data.DataLoader(trainset, batch_size = args.batch_size,
                                             shuffle = True, num_workers = 128)
-                                        
+
     testloader = torch.utils.data.DataLoader(testset, batch_size = args.batch_size,
-                                            shuffle = False, num_workers = 128)     
-    
-    
+                                            shuffle = False, num_workers = 128)
+
+
     ####For Variation#####
     if args.var and args.is_quantize and not args.shifting:
         Variation(net, args.var)
         if args.quantize_mode == 'exp':
             _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit_base' + str(args.base)
         elif args.quantize_mode == 'power':
-            _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit_base' + str(args.base) 
+            _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit_base' + str(args.base)
         elif args.quantize_mode == 'linear':
             _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit'
         else:
@@ -387,7 +387,7 @@ def main():
 
         if args.var_after:
             assert args.scale_resume != 'none'
-            scale = torch.load(args.scale_resume) 
+            scale = torch.load(args.scale_resume)
             net.module.scale = scale
 
         criterion = nn.CrossEntropyLoss().cuda()
@@ -398,7 +398,7 @@ def main():
             qtz_opts = quantize_opts(is_quantize = False)
         print ('====================Start Evaluation==========================')
         assert args.resume != 'none'
-        
+
 
 
 
@@ -409,20 +409,21 @@ def main():
 
         if args.prune == 1:
             prune_ratio_list = [0,0.4,0.2,0.4,0.3,0.3,0.9,0]
-            prune_layer(net, args, prune_ratio_list)
+            #prune_layer(net, args, prune_ratio_list)
+            prune_layer(net, args)
             pred = Eval(testloader, net, criterion, optimizer, -1, qtz_opts, args.shifting, args.non_uniform, args.rate, args.mode, args.var)
             torch.save(net.state_dict(),'./' + args.save_dir +'/' + args.arch + '_prune' + str(prune_ratio_list) + '%' +  '_ideal.pt')
-            
+
 
         if args.placement:
-            
+
             sector, len_tmp_list, redundant_heatlist, idx = placement(net, args)
             if args.prune ==1 :
                 prune_layer(net, args)
                 pred = Eval(testloader, net, criterion, optimizer, -1, qtz_opts, args.shifting, args.non_uniform, args.rate, args.mode, args.var)
                 #torch.save(net.state_dict(),'./' + args.save_dir +'/' + args.arch + '_prune' + args.prune_ratio + '%' + str(args.testbit) + 'bit' +'.pt')
                 torch.save(net.state_dict(),'./' + args.save_dir +'/' + args.arch + '_prune' + args.prune_ratio + '%' + str(args.testbit) + '.pt')
-            
+
 
             if args.thermal==1 and args.nonuniform_quantization ==0:
                 thermal_after_placement(net, args, sector)
@@ -431,7 +432,7 @@ def main():
             if args.split == 1:
                 sector, place_idx = split_after_prune(net, sector, args)
                 thermal_after_split(net, sector, args, len_tmp_list, place_idx)
-           
+
             if args.downgrade == 1:
                 downgrading_8bit(net, args, sector, idx)
 
@@ -439,11 +440,11 @@ def main():
             #    tile_pairing(net, sector, args, len_tmp_list, redundant_heatlist, idx)
             if args.remapping ==1:
                 remapping_thermal(net, sector, args, len_tmp_list, redundant_heatlist, idx)
-        
+
             if args.compensation == 1:
                 compensation(net, sector, args, idx)
                 #tile_pairing(net, sector, args, len_tmp_list, redundant_heatlist, idx)
-        
+
         else:
             if args.weight_sense == 1:
                 weight_sensitivity(net, args)
@@ -456,7 +457,7 @@ def main():
 
         if args.output_weight:
             print_weight(net_quantized, args.quantize_width, args.cell_resolution, args.Rmax)
-       
+
 
 
         print ('====================Start Evaluation==========================')
@@ -475,10 +476,10 @@ def main():
         #    if args.high_t_prune_remap == 0:
         #        data = open('normal_temp_remap_data.txt','a')
         #    data.write('architechure = ' + args.arch + ', prune_ratio = ' + str(args.prune_ratio) + ', bit = ' + str(args.testbit) + ', direction = ' + args.direct + ', acc = ' + str(pred) + '\n')
-    
-    
-    
-    
+
+
+
+
     elif args.finetune: ###### finetune step
         assert args.resume != 'none'
         # print ('====================Original Accuracy=========================')
@@ -499,7 +500,7 @@ def main():
             if args.quantize_mode == 'exp':
                 _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit_base' + str(args.base)
             elif args.quantize_mode == 'power':
-                _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit_base' + str(args.base) 
+                _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit_base' + str(args.base)
             elif args.quantize_mode == 'linear':
                 _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit'
             else:
@@ -509,23 +510,23 @@ def main():
         else:
             qtz_opts = quantize_opts(is_quantize = False)
             _suffix = '_original'
-        
+
         # ================================Start training============================
-        
+
         for epoch in range(int(args.epochs)):
             prune_ratio_list = [0,0.4,0.2,0.4,0.3,0.3,0.9,0.]
             Train(trainloader, net, criterion, optimizer, epoch, qtz_opts, args.shifting, args.non_uniform, args.var, args) ## original prune
             #Train(trainloader, net, criterion, optimizer, epoch, qtz_opts, args.shifting, args.non_uniform, args.var, args, prune_ratio_list)
             pred = Eval(testloader, net, criterion, optimizer, epoch, qtz_opts, args.shifting, args.non_uniform, args.rate, args.mode, args.var)
-            
-            
+
+
             if pred > best_pred:
                 best_pred = pred
                 #torch.save(net.state_dict(),'./' + args.save_dir + '/' + args.arch +  '_stop_gradient_' + args.prune_ratio + args.quantize_mode + str(args.quantize_width) + str(args.testbit) + '%.pt')
                 torch.save(net.state_dict(),'./' + args.save_dir + '/' + args.arch +  '_retrain_' + str(prune_ratio_list)  + '%_ideal.pt')
-           
 
-            
+
+
             #if pred > best_pred:
             #    best_pred = pred
             #    torch.save(net.state_dict(),'./' + args.save_dir +'/' + args.arch + _suffix + '.pt')
@@ -538,9 +539,9 @@ def main():
             if (epoch+1) % 20 == 0:
                 for param_group in optimizer.param_groups:
                     param_group['lr'] = param_group['lr'] * 0.3
-                    
+
         print(best_pred)
-    
+
     else:#### Training step
         criterion = nn.CrossEntropyLoss().cuda()
         if args.var_after:
@@ -553,9 +554,9 @@ def main():
         if args.is_quantize:
             qtz_opts = quantize_opts(is_quantize = True, _mode = args.quantize_mode, _width = args.quantize_width, _base = args.base)
             if args.quantize_mode == 'exp':
-                _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit_base' + str(args.base) 
+                _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit_base' + str(args.base)
             elif args.quantize_mode == 'power':
-                _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit_base' + str(args.base) 
+                _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit_base' + str(args.base)
             elif args.quantize_mode == 'linear':
                 _suffix = '_quantize_' + args.quantize_mode + '_' + str(args.quantize_width) + 'bit'
             else:
@@ -565,13 +566,13 @@ def main():
         else:
             qtz_opts = quantize_opts(is_quantize = False)
             _suffix = '_original'
-        
+
         # ================================Start training============================
 
         for epoch in range(args.epochs):
             Train(trainloader, net, criterion, optimizer, epoch, qtz_opts, args.shifting, args.non_uniform, args.var, args)
             pred = Eval(testloader, net, criterion, optimizer, epoch, qtz_opts, args.shifting, args.non_uniform, args.rate, args.mode, args.var)
-            
+
 
             if pred > best_pred:
                 best_pred = pred
@@ -580,9 +581,9 @@ def main():
             if (epoch+1) % 30 == 0:
                 for param_group in optimizer.param_groups:
                     param_group['lr'] = param_group['lr'] * 0.5
-                    
+
         print(best_pred)
-    
+
 if __name__ == '__main__':
     main()
     # torch.save(net,'/home/zhu-z14/ljl/vgg/vgg_final.tar')

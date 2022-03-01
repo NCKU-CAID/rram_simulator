@@ -8,7 +8,6 @@ $ python --version
 Python 3.7.3
 ```
 
-
 ### Download source code
 * Since `hotspot` is different project, use `recursive` to clone
 ```
@@ -30,7 +29,7 @@ source venv/bin/activate
 
 ### Install requirement package
 ```python=
-pip install -r requirement.txt
+pip install -r package_list
 ```
 
 ### Show helping list

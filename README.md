@@ -2,6 +2,13 @@
 
 ## Experiment setup
 
+## Check python version
+```
+$ python --version
+Python 3.7.3
+```
+
+
 ### Download source code
 * Since `hotspot` is different project, use `recursive` to clone
 ```
@@ -81,6 +88,13 @@ python main.py --resume saved_models/vgg11_8bit.pt -e 1 --placement 1 --experime
 ### Retrain pruned model
 ```python=
 python main.py --resume saved_models/vgg11_prune10%.pt --finetune 1 --stop_gradient 1 --prune_ratio 10 --arch vgg11
+```
+* before running `--finetune`, optimizer should be modified because the version is too old
+* modified file `venv/lib/python3.7/site-packages/torch/optim/optimizer.py` as following, then this command can be run
+
+```
+164 #p.grad.detach_()
+165 p.grad.detach()
 ```
 
 ### Quantize retrained model
